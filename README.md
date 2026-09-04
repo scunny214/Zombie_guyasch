@@ -1,0 +1,3637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>20일</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500&family=Noto+Serif+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ash:#1a1815;
+  --ash-2:#211e1a;
+  --surface:#26221d;
+  --line:#3b352d;
+  --paper:#d9d3c6;
+  --dim:#8a8377;
+  --dimmer:#635d53;
+  --moss:#8fa07d;
+  --blood:#a0524a;
+  --lamp:#c9a227;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--ash);
+  color:var(--paper);
+  font-family:'Noto Serif KR',serif;
+  font-weight:300;
+  line-height:1.95;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* 감염 비네트 — 이 게임의 유일한 과장 */
+#vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:60;
+  box-shadow:inset 0 0 22vh 0 rgba(160,60,50,0);
+  transition:box-shadow 1.4s ease;
+}
+
+/* 상단 상태 */
+header{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(var(--ash-2) 78%,rgba(26,24,21,0));
+  padding:14px 20px 20px;
+}
+.hwrap{max-width:660px;margin:0 auto}
+.daymark{
+  display:flex;align-items:baseline;gap:12px;
+  border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:12px;
+}
+.daymark b{font-size:20px;font-weight:700;letter-spacing:.06em}
+.daymark span{font-size:14px;color:var(--dim)}
+.daymark .place{margin-left:auto;font-size:13px;color:var(--dimmer)}
+
+.gauges{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center}
+.g{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+.g .num{
+  font-family:'Noto Sans KR',sans-serif;font-weight:500;
+  color:var(--paper);font-variant-numeric:tabular-nums;min-width:26px;text-align:right;
+}
+.bar{width:60px;height:3px;background:var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--paper);transition:width .5s ease}
+.bar.hp i{background:var(--paper)}
+.bar.hunger i{background:var(--dim)}
+.bar.inf i{background:var(--blood)}
+
+.ash-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--dim);
+}
+.ash-row .mood{color:var(--moss);font-weight:500}
+.ash-row .state{color:var(--blood)}
+.pack{display:flex;gap:7px;margin-left:auto}
+.pack button{
+  font-family:'Noto Sans KR',sans-serif;font-size:12px;
+  background:transparent;color:var(--dim);
+  border:1px solid var(--line);padding:4px 10px;cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.pack button:hover:not(:disabled){border-color:var(--dim);color:var(--paper)}
+.pack button:disabled{opacity:.32;cursor:default}
+.pack button:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+
+/* 본문 */
+main{max-width:660px;margin:0 auto;padding:8px 20px 120px}
+.scene{animation:rise .7s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.narr p{font-size:17.5px;margin-bottom:1.05em;max-width:60ch}
+.narr p.said{color:#e6e0d3}
+.narr p.beat{color:var(--dim);font-style:italic}
+
+/* 결과 로그 */
+.result{
+  margin:26px 0 4px;padding:16px 0 0;border-top:1px solid var(--line);
+}
+.roll{
+  font-family:'Noto Sans KR',sans-serif;font-size:12.5px;
+  color:var(--dimmer);margin-bottom:14px;
+}
+.roll b{color:var(--paper);font-weight:500}
+.roll.bad b{color:var(--blood)}
+.deltas{
+  display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:16px;
+  font-family:'Noto Sans KR',sans-serif;font-size:12.5px;
+}
+.deltas span{color:var(--dim)}
+.deltas .up{color:var(--moss)}
+.deltas .down{color:var(--blood)}
+
+/* 선택지 */
+.choices{margin-top:34px;display:flex;flex-direction:column;gap:9px}
+.choices h4{
+  font-size:13px;font-weight:300;color:var(--dimmer);
+  margin-bottom:5px;letter-spacing:.04em;
+}
+button.ch{
+  display:block;width:100%;text-align:left;
+  background:var(--surface);color:var(--paper);
+  font-family:'Noto Serif KR',serif;font-size:16px;font-weight:300;line-height:1.6;
+  border:0;border-left:2px solid var(--line);
+  padding:14px 18px;cursor:pointer;
+  transition:border-color .18s,background .18s,padding-left .18s;
+}
+button.ch:hover:not(:disabled){border-left-color:var(--moss);background:#2c2822;padding-left:22px}
+button.ch:focus-visible{outline:2px solid var(--moss);outline-offset:-2px}
+button.ch .aside{color:var(--dimmer);font-size:14px}
+button.ch .meta{
+  display:block;font-family:'Noto Sans KR',sans-serif;
+  font-size:12px;color:var(--dimmer);margin-top:5px;line-height:1.5;
+}
+button.ch:disabled{color:var(--dimmer);cursor:default;background:#201d19}
+button.ch.locked .meta{color:var(--blood)}
+
+button.go{
+  margin-top:30px;background:transparent;color:var(--dim);
+  border:1px solid var(--line);border-left-width:2px;
+  font-family:'Noto Serif KR',serif;font-size:15px;font-weight:300;
+  padding:12px 20px;cursor:pointer;transition:color .2s,border-color .2s;
+}
+button.go:hover{color:var(--paper);border-color:var(--dim)}
+button.go:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+
+/* 타이틀 / 엔딩 */
+.title-screen{padding:16vh 0 0;text-align:left}
+.title-screen .n{
+  font-size:clamp(62px,17vw,116px);font-weight:700;line-height:.86;
+  letter-spacing:-.03em;color:var(--paper);
+}
+.title-screen .n em{font-style:normal;color:var(--dimmer)}
+.title-screen .sub{
+  margin-top:20px;font-size:16px;color:var(--dim);max-width:44ch;
+}
+.title-screen .rules{
+  margin-top:38px;padding-top:20px;border-top:1px solid var(--line);
+  font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--dimmer);
+  line-height:2;max-width:52ch;
+}
+
+.ending{padding-top:6vh}
+.ending .kicker{font-size:14px;color:var(--dim);margin-bottom:6px}
+.ending h2{font-size:38px;font-weight:700;line-height:1.2;letter-spacing:-.02em;margin-bottom:22px}
+.ending h2.bad{color:var(--blood)}
+.sheet{
+  margin-top:30px;border-top:1px solid var(--line);padding-top:20px;
+  font-family:'Noto Sans KR',sans-serif;font-size:13.5px;line-height:2.1;color:var(--dim);
+}
+.sheet dt{color:var(--dimmer);display:inline-block;width:88px}
+.sheet dd{display:inline;color:var(--paper)}
+.sheet .row{display:block}
+.tag{
+  display:inline-block;border:1px solid var(--line);padding:1px 9px;
+  margin:0 4px 4px 0;font-size:12px;color:var(--moss);
+}
+.tag.off{color:var(--dimmer)}
+
+/* 체력 사망 — 흑백 */
+.bleak{filter:grayscale(1)}
+.bleak .stain{
+  width:190px;height:150px;margin:0 0 30px -12px;
+  background:
+    radial-gradient(38px 30px at 40px 44px,#7d2a24 60%,transparent 62%),
+    radial-gradient(28px 34px at 96px 30px,#6e241f 58%,transparent 60%),
+    radial-gradient(20px 16px at 132px 66px,#7d2a24 60%,transparent 62%),
+    radial-gradient(11px 9px  at 158px 42px,#6e241f 60%,transparent 62%),
+    radial-gradient(46px 26px at 74px 92px,#5f1f1a 55%,transparent 58%),
+    radial-gradient(8px 7px   at 24px 104px,#7d2a24 60%,transparent 62%);
+  opacity:.85;
+}
+.tag.big{font-size:14px;padding:4px 14px;color:var(--paper);border-color:var(--dim)}
+
+.cnt{color:var(--lamp);font-weight:500}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:12px}
+.gal .cell{
+  border:1px solid var(--line);border-left:2px solid var(--moss);
+  padding:8px 10px;font-size:12.5px;line-height:1.6;color:var(--paper);
+}
+.gal .cell b{color:var(--lamp);font-weight:500;margin-right:6px}
+.gal .cell span{display:block;color:var(--dimmer);font-size:11.5px;margin-top:2px}
+.gal .cell.hid{border-left-color:var(--line);color:var(--dimmer)}
+.gal .cell.hid b{color:var(--dimmer)}
+.gal .cell.now{border-left-color:var(--lamp);background:#2c2822}
+
+@media (max-width:520px){
+  .narr p{font-size:16.5px}
+  .gauges{gap:5px 16px}
+  .bar{width:46px}
+  .pack{margin-left:0;width:100%;margin-top:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="vignette"></div>
+<header id="hud" hidden>
+  <div class="hwrap">
+    <div class="daymark">
+      <b id="hd-day">DAY 1</b><span id="hd-phase">낮</span>
+      <span class="place" id="hd-place"></span>
+    </div>
+    <div class="gauges">
+      <div class="g">체력 <div class="bar hp"><i id="b-hp"></i></div><div class="num" id="n-hp">100</div></div>
+      <div class="g">포만감 <div class="bar hunger"><i id="b-hunger"></i></div><div class="num" id="n-hunger">100</div></div>
+      <div class="g" id="g-inf" hidden>감염도 <div class="bar inf"><i id="b-inf"></i></div><div class="num" id="n-inf">0</div></div>
+    </div>
+    <div class="ash-row">
+      <span>애쉬</span><span class="mood" id="n-mood">서먹함</span>
+      <span class="state" id="n-state"></span>
+      <div class="pack">
+        <button id="use-food"></button>
+        <button id="use-band"></button>
+        <button id="use-anti"></button>
+      </div>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<script>
+/* ============================================================
+   20일 — 애쉬와 루크 (Day 1~20)
+   시나리오는 SCENES 객체에만 들어 있습니다. 대사/수치를 고치고
+   싶으면 아래 엔진은 건드리지 말고 SCENES만 수정하세요.
+   ============================================================ */
+
+const START = {
+  day:1, hp:100, hunger:100, inf:0,
+  food:3, band:2, anti:0,
+  aff:10,
+  infected:false, injured:false, antiOn:false,
+  bonus:0,        // 판정 실패 누적 보정 (+10%씩, 성공하면 초기화)
+  searchUp:0,     // 노트[B] 선택 시 탐색 판정 영구 +10%
+  ateToday:false, usedBandToday:false,
+  slow:false, raidMod:0, biteMod:0, autoDosed:false,
+  flags:{}, seen:[]
+};
+const clone = o => (typeof structuredClone === 'function')
+  ? structuredClone(o) : JSON.parse(JSON.stringify(o));
+let S = clone(START);
+let CUR = null;
+let PENDING = null;
+
+/* ---------- 엔딩 수집 ---------- */
+const VAULT_KEY = 'ash20_endings_v1';
+let MEM_VAULT = [];
+function loadVault(){
+  try { return new Set(JSON.parse(localStorage.getItem(VAULT_KEY) || '[]')); }
+  catch(e){ return new Set(MEM_VAULT); }
+}
+function saveVault(set){
+  MEM_VAULT = [...set];
+  try { localStorage.setItem(VAULT_KEY, JSON.stringify(MEM_VAULT)); } catch(e){}
+}
+function collect(code){ const v = loadVault(); v.add(code); saveVault(v); }
+
+const DEBUG = false;   // true로 바꾸면 호감도 숫자가 화면에 표시됩니다
+// 호감도가 높을수록 올리기 어려워진다 (하락은 항상 전액)
+const GAIN = [[115,0.25],[90,0.4],[-9999,0.5]];
+const gainScale = v => GAIN.find(g => v >= g[0])[1];
+const BITE_BONUS = 10; // 모든 물림 판정에 붙는 가산치
+const DISTRUST = -35;  // 이 값 이하면 불신 상태
+
+const MOODS = [
+  [100,'애정','#e8a0b8'], [65,'흔들림','#e0a878'], [45,'신경 쓰임','#a8c090'],
+  [20,'무덤덤','#8fa07d'], [0,'서먹함','#8a8377'], [-34,'경계','#c07a70'],
+  [-10000,'불신','#a83028']
+];
+const moodOf = v => MOODS.find(m => v >= m[0]);
+const mood  = v => moodOf(v)[1];
+const distrust = () => S.aff <= DISTRUST;
+const has = f => !!S.flags[f];
+
+/* 감염도에 따른 가이의 몸 상태 — 감염 이벤트 서두에 붙는다 */
+function feverLine(){
+  if (S.inf >= 85) return '숨이 거칠고 빠르다. 시야 가장자리가 계속 흐려지고, 서 있는 것조차 버겁다.';
+  if (S.inf >= 65) return '열이 뜨겁게 끓어오르는 탓에 제대로 걷는 것조차 어려울 지경이다.';
+  if (S.inf >= 45) return '가이의 숨이 점점 거칠어진다. 손끝의 감각이 무뎌지기 시작했다.';
+  if (S.inf >= 25) return '상처 주변이 계속 뜨겁다. 아직은 견딜 만하다.';
+  return '팔의 상처가 욱신거린다.';
+}
+const raise = f => { S.flags[f] = true; };
+
+/* ---------- 판정 ---------- */
+function chance(base, opt){
+  opt = opt || {};
+  let c = base + S.bonus;
+  if (S.injured) c -= 15;
+  if (S.inf >= 40) c -= 10;
+  if (opt.search) c += S.searchUp;
+  if (opt.mod) c += (typeof opt.mod === 'function' ? opt.mod() : opt.mod);
+  return Math.max(5, Math.min(95, Math.round(c)));
+}
+function roll(c){
+  const r = Math.floor(Math.random()*100) + 1;
+  const win = r <= c;
+  S.bonus = win ? 0 : S.bonus + 10;   // 연속 실패 방지 보정
+  return { win, r, c };
+}
+
+/* ---------- 효과 적용 ---------- */
+const LABEL = {hp:'체력',hunger:'포만감',inf:'감염도',aff:'애쉬 호감도',
+               food:'식량',band:'붕대',anti:'항생제'};
+function apply(fx){
+  const out = [];
+  if (!fx) return out;
+  for (const k of ['hp','hunger','inf','aff','food','band','anti']){
+    if (fx[k] == null) continue;
+    let v = fx[k];
+    if (k === 'aff' && v > 0) v = Math.max(1, Math.round(v * gainScale(S.aff)));
+    S[k] += v;
+    if (k === 'aff'){ out.push({ t:'애쉬', v, aff:true }); continue; }
+    if (k!=='aff') S[k] = Math.max(0, S[k]);
+    if (k==='hp') S.hp = Math.min(100, S.hp);
+    if (k==='hunger') S.hunger = Math.min(100, S.hunger);
+    out.push({ t: LABEL[k], v });
+  }
+  if (fx.injured != null){
+    S.injured = fx.injured;
+    out.push({ t: fx.injured ? '부상' : '부상 회복', v: 0 });
+  }
+  if (fx.infect){
+    S.infected = true; S.inf += fx.infect;
+    out.push({ t:'감염 시작', v: fx.infect });
+  }
+  if (fx.searchUp){ S.searchUp += fx.searchUp; out.push({t:'탐색 성공률', v:fx.searchUp}); }
+  if (fx.flag) (Array.isArray(fx.flag)?fx.flag:[fx.flag]).forEach(f=>{
+    raise(f); out.push({ t:'기록: '+f, v:0 });
+  });
+  return out;
+}
+
+/* ---------- 하루 종료 ---------- */
+function endDay(){
+  const log = [];
+  S.hunger = Math.max(0, S.hunger - 15);
+  log.push({t:'포만감', v:-15});
+  if (S.hunger === 0){ S.hp = Math.max(0, S.hp - 15); log.push({t:'체력 (굶주림)', v:-15}); }
+  else if (S.hunger >= 55 && S.hp < 100){
+    const r = Math.min(6, 100 - S.hp);
+    S.hp += r; log.push({t:'체력 (잘 쉬었다)', v:r});
+  }
+  S.day++;
+  S.ateToday = false; S.usedBandToday = false;
+  if (S.day >= 16 && S.day <= 20 && !has('대답')){
+    const d = has('구별') ? 2 : 5;
+    S.aff -= d;
+    log.push({ t:'애쉬', v:-d, aff:true });
+  }
+  S.slow = false; S.raidMod = 0; S.biteMod = 0;
+  if (S.infected){
+    if (has('위탁') && S.inf >= 70 && S.anti > 0 && !S.antiOn){
+      S.anti--; S.inf = Math.max(0, S.inf - 10); S.antiOn = true;
+      log.push({t:'애쉬가 항생제를 먹였다', v:0});
+      log.push({t:'감염도', v:-10});
+    }
+    if (S.antiOn){ S.antiOn = false; log.push({t:'항생제가 감염 진행을 붙잡았다', v:0}); }
+    else { const up = S.inf >= 70 ? 15 : 10; S.inf += up; log.push({t:'감염도', v:up}); }
+    if (S.inf >= 80){ S.hp = Math.max(0, S.hp - 8); log.push({t:'체력 (고열)', v:-8}); }
+    else if (S.inf >= 60){ S.hp = Math.max(0, S.hp - 5); log.push({t:'체력 (미열)', v:-5}); }
+  }
+  return log;
+}
+
+/* ---------- 소지품 사용 ---------- */
+function packUse(kind){
+  if (kind==='food'){
+    if (S.food<=0 || S.ateToday || S.hunger>=100) return;
+    S.food--; S.hunger = Math.min(100, S.hunger+30); S.ateToday = true;
+  }
+  if (kind==='band'){
+    if (S.band<=0 || S.usedBandToday) return;
+    S.band--; S.usedBandToday = true;
+    S.hp = Math.min(100, S.hp+15); S.injured = false;
+  }
+  if (kind==='anti'){
+    if (S.anti<=0 || !S.infected || S.antiOn) return;
+    S.anti--; S.antiOn = true; S.inf = Math.max(0, S.inf - 10);
+  }
+  drawHUD();
+}
+
+/* ---------- HUD ---------- */
+function drawHUD(){
+  const $ = id => document.getElementById(id);
+  const off = !CUR || CUR.title || CUR.ending;
+  $('hud').hidden = off;
+  if (off) return;
+  $('hd-day').textContent = 'DAY ' + S.day;
+  $('hd-phase').textContent = CUR.phase || '';
+  $('hd-place').textContent = CUR.place || '';
+  $('n-hp').textContent = S.hp;      $('b-hp').style.width = S.hp+'%';
+  $('n-hunger').textContent = S.hunger; $('b-hunger').style.width = S.hunger+'%';
+  $('g-inf').hidden = !S.infected;
+  $('n-inf').textContent = S.inf;    $('b-inf').style.width = Math.min(100,S.inf)+'%';
+  const m = moodOf(S.aff);
+  $('n-mood').textContent = DEBUG ? `${m[1]} (${S.aff})` : m[1];
+  $('n-mood').style.color = m[2];
+
+  const st = [];
+  if (S.injured) st.push('부상');
+  if (S.antiOn) st.push('항생제 지속');
+  if (distrust()) st.push('애쉬가 등을 돌렸다');
+  $('n-state').textContent = st.join(' · ');
+
+  const f = $('use-food'), b = $('use-band'), a = $('use-anti');
+  f.textContent = `식량 ${S.food}`;
+  f.disabled = S.food<=0 || S.ateToday || S.hunger>=100;
+  b.textContent = `붕대 ${S.band}`;
+  b.disabled = S.band<=0 || S.usedBandToday;
+  a.textContent = `항생제 ${S.anti}`;
+  a.disabled = S.anti<=0 || !S.infected || S.antiOn;
+  a.hidden = !S.infected && S.anti===0;
+
+  const v = Math.min(0.55, S.inf/100 * 0.55);
+  document.getElementById('vignette').style.boxShadow =
+    `inset 0 0 22vh 0 rgba(160,60,50,${v})`;
+}
+
+/* ---------- 렌더 ---------- */
+const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+function prose(box, txt){
+  txt.trim().split(/\n\s*\n/).forEach(par=>{
+    let c = '';
+    if (par.startsWith('"') || par.startsWith('\u201c')) c='said';
+    if (par.startsWith('~')) { c='beat'; par = par.slice(1).trim(); }
+    const html = par.split('**').map((s,i)=> i%2 ? '<b>'+s+'</b>' : s).join('').split(String.fromCharCode(10)).join('<br>');
+    box.appendChild(el('p', c, html));
+  });
+}
+function deltas(box, list){
+  if (!list.length) return;
+  const d = el('div','deltas');
+  list.forEach(x=>{
+    if (x.aff){
+      const n = Math.abs(x.v);
+      const arrow = (x.v > 0 ? '↑' : '↓').repeat(n >= 13 ? 3 : n >= 6 ? 2 : 1);
+      d.appendChild(el('span', x.v > 0 ? 'up' : 'down',
+        DEBUG ? `애쉬 ${x.v > 0 ? '+' : ''}${x.v}` : `애쉬 ${arrow}`));
+      return;
+    }
+    const bad = x.t.startsWith('감염') || x.t === '부상';
+    const cls = bad ? 'down' : (x.v > 0 ? 'up' : x.v < 0 ? 'down' : '');
+    const sign = x.v > 0 ? '+' : '';
+    d.appendChild(el('span', cls, x.v !== 0 ? `${x.t} ${sign}${x.v}` : x.t));
+  });
+  box.appendChild(d);
+}
+
+function go(id){
+  CUR = SCENES[id];
+  if (typeof CUR === 'function') CUR = CUR();
+  S.seen.push(id);
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  drawHUD();
+  if (CUR.title) return renderTitle(app);
+  if (CUR.ending) return renderEnding(app);
+
+  const sc = el('div','scene');
+  if (PENDING && PENDING.length){
+    const dawn = el('div','result');
+    dawn.style.cssText = 'border-top:0;border-bottom:1px solid var(--line);margin:0 0 26px;padding:0 0 16px';
+    deltas(dawn, PENDING);
+    sc.appendChild(dawn);
+    PENDING = null;
+  }
+  const narr = el('div','narr');
+  prose(narr, typeof CUR.text==='function' ? CUR.text() : CUR.text);
+  sc.appendChild(narr);
+  sc.appendChild(buildChoices());
+  app.appendChild(sc);
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function buildChoices(){
+  const wrap = el('div','choices');
+  const visible = (CUR.choices||[]).filter(c => !c.show || c.show());
+  if (visible.length > 1) wrap.appendChild(el('h4','','어떻게 할까'));
+  (CUR.choices||[]).forEach((c,i)=>{
+    if (c.show && !c.show()) return;
+    const b = el('button','ch');
+    b.type='button';
+    b.innerHTML = `${c.label}` + (c.meta ? `<span class="meta">${typeof c.meta==='function'?c.meta():c.meta}</span>` : '');
+    const warmth = c.warm || (c.fx && typeof c.fx === 'object' && (c.fx.aff||0) >= 10)
+                 || (c.win && c.win.fx && typeof c.win.fx === 'object' && (c.win.fx.aff||0) >= 10);
+    if (distrust() && warmth){
+      b.disabled = true; b.classList.add('locked');
+      b.innerHTML = `${c.label}<span class="meta">지금 애쉬에게 이런 말을 할 수는 없다</span>`;
+      wrap.appendChild(b); return;
+    }
+    if (c.lock && c.lock()){
+      b.disabled = true; b.classList.add('locked');
+      b.innerHTML = `${c.label}<span class="meta">${c.lockText||'지금은 고를 수 없다'}</span>`;
+    } else {
+      b.onclick = ()=>pick(c);
+    }
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+
+function pick(c){
+  let out;
+  if (c.roll != null){
+    const cc = chance(typeof c.roll==='function'?c.roll():c.roll, c);
+    const r = roll(cc);
+    out = Object.assign({}, r.win ? c.win : c.lose);
+    out._roll = { ...r, win:r.win };
+  } else if (c.branch){
+    out = Object.assign({}, c.branch());
+  } else {
+    out = Object.assign({}, c);
+  }
+  showOutcome(out, c);
+}
+
+function showOutcome(out, c){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  const sc = el('div','scene');
+
+  // 재확인: 화면 상단에 방금 고른 선택
+  const head = el('div','roll' + (out._roll && !out._roll.win ? ' bad':''));
+  if (out._roll){
+    head.innerHTML = `${c.label} — 성공률 <b>${out._roll.c}%</b> · 판정 <b>${out._roll.r}</b> · `
+                   + (out._roll.win ? '<b>성공</b>' : '<b>실패</b>');
+  } else {
+    head.innerHTML = c.label;
+  }
+  sc.appendChild(head);
+
+  const narr = el('div','narr');
+  prose(narr, typeof out.text==='function' ? out.text() : (out.text||''));
+  sc.appendChild(narr);
+
+  let log = apply(typeof out.fx==='function' ? out.fx() : out.fx);
+
+  // 물림 판정
+  if (out.bite){
+    const bc = Math.max(5, out.bite + BITE_BONUS + (S.biteMod || 0));
+    const r = Math.floor(Math.random()*100)+1;
+    if (r <= bc){
+      const bn = el('div','narr');
+      prose(bn, BITE_TEXT);
+      sc.appendChild(bn);
+      log = log.concat(apply({ infect: 20, flag:'물림' }));
+    } else {
+      const bn = el('div','narr');
+      prose(bn, '~소매를 걷어 팔을 살폈다. 긁힌 자국뿐이다. 이빨 자국은 없다.');
+      sc.appendChild(bn);
+    }
+  }
+
+  const res = el('div','result');
+  deltas(res, log);
+  sc.appendChild(res);
+
+  // 사망 체크
+  if (S.hp <= 0) return finish(sc, 'dead_hp');
+  if (S.inf >= 100) return finish(sc, 'dead_inf');
+
+  const nextId = out.next || (typeof c.next==='function'?c.next():c.next) || CUR.next;
+  const closes = out.endsDay || (CUR.dayEnd && out.next == null);
+  const btn = el('button','go', out.goLabel || (closes ? '눈을 감는다' : '계속한다'));
+  btn.type='button';
+  btn.onclick = ()=>{
+    if (closes){
+      const dl = endDay();
+      if (S.hp<=0) return go('dead_hp');
+      if (S.inf>=100) return go('dead_inf');
+      PENDING = dl;
+    }
+    go(typeof nextId==='function' ? nextId() : nextId);
+  };
+  sc.appendChild(btn);
+  app.appendChild(sc);
+  drawHUD();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function finish(sc, id){
+  const b = el('button','go','그리고');
+  b.type='button'; b.onclick = ()=>go(id);
+  sc.appendChild(b);
+  document.getElementById('app').appendChild(sc);
+  drawHUD();
+}
+
+function renderTitle(app){
+  const sc = el('div','scene title-screen');
+  sc.appendChild(el('div','n','20<em>일</em>'));
+  sc.appendChild(el('div','sub',
+    '애쉬와 함께 20일을 버티고 루크를 찾는다.'));
+  sc.appendChild(el('div','rules',
+    '체력이 0이 되거나 감염도가 100이 되면 끝난다.<br>'+
+    '애쉬의 호감도는 숫자로 보이지 않는다.<br>'+
+    '다정한 선택이 늘 옳지는 않다.'));
+  const v = loadVault();
+  if (v.size) sc.appendChild(el('div','rules',
+    `발견한 엔딩 <span class="cnt">${v.size} / 14</span>`));
+  const b = el('button','go','눈을 뜬다'); b.type='button';
+  b.onclick = ()=>{ S = clone(START); go('d1_day'); };
+  sc.appendChild(b);
+  app.appendChild(sc);
+}
+
+const BITE_TEXT = `팔뚝이 뜨겁다. 소매를 걷자, 반원형으로 파인 잇자국이 드러난다.
+
+애쉬가 그것을 오랫동안 바라본다.
+
+"……."
+
+애쉬의 손이 미세하게 떨렸다. 그리고 아무 일도 없었다는 듯 무기를 정리한다.
+
+"…아직은 살아있지 않나."
+
+그게 전부였다.`;
+
+const pct = (base, opt) => () => `성공률 ${chance(base, opt||{})}%`;
+
+const SCENES = {
+
+/* ══════════════ 타이틀 ══════════════ */
+start: { title:true },
+
+/* ══════════════ DAY 1 ══════════════ */
+d1_day: {
+  phase:'낮', place:'도심 외곽', next:'d1_night',
+  text:`셔터가 반쯤 내려간 편의점. 안은 어둡고, 진열대는 대부분 비어 있다.
+
+애쉬가 총자루에 손을 얹은 채 턱짓한다.
+
+"들어갈 거면 빨리 정해라. 해가 지면 골치 아파지니까."`,
+  choices:[
+    { label:'셔터 밑으로 기어 들어간다', meta:pct(75,{search:true}), search:true, roll:75,
+      win:{ fx:{food:2, aff:3},
+        text:`좁은 틈으로 몸을 밀어 넣었다. 안쪽 창고 선반에 손도 안 댄 통조림 두 개가 남아 있다.
+
+"…뭐, 쓸만하군."
+
+애쉬가 봉지를 받아 든다. 그게 칭찬의 전부다.` },
+      lose:{ fx:{hp:-10, food:1},
+        text:`선반을 짚은 순간 위쪽 진열대가 통째로 무너졌다. 팔뚝이 길게 긁혔다. 그래도 통조림 하나는 건졌다.
+
+긁힌 자리를 본 애쉬가 혀를 찬다.
+
+"그러게 내가 하겠다고 하지 않았나."` } },
+
+    { label:'위험하니 그냥 지나친다', fx:{aff:-5},
+      text:`셔터에서 손을 뗐다. 애쉬가 짧게 코웃음을 친다.
+
+"그럴 거면 왜 멈춰 섰나."
+
+한동안 아무도 말을 하지 않았다.` },
+
+    { label:'"네가 먼저 들어가면 나도 갈게."', fx:{food:2, aff:-12},
+      text:`애쉬는 아무 말 없이 셔터 밑으로 들어갔다. 오래 걸리지 않았다.
+
+나온 애쉬가 봉지를 가이의 가슴팍에 던진다.
+
+"다음엔 네가 먼저 기어들어가라."`}
+  ]
+},
+
+d1_night: {
+  phase:'밤', place:'폐창고', dayEnd:true, next:'d2_day',
+  text:`불도 못 피우고 창고 구석에 자리를 잡았다. 애쉬가 벽에 등을 기대고 앉아 있다.
+
+"난 생각 없다. 네 녀석이나 먹어라."
+
+~배에서 소리가 났다. 애쉬 쪽에서.`,
+  choices:[
+    { label:'"그래도 반씩 나눠 먹자." (억지로 쥐여준다)',
+      fx:{hunger:15, food:-1, aff:-5},
+      text:`통조림을 억지로 쥐여주자 애쉬의 표정이 굳는다.
+
+"…내가 못 먹어서 안 먹는 줄 아나?"
+
+결국 받아 먹기는 했다. 그날 밤 내내 등을 돌리고 있었다.` },
+
+    { label:'"네가 안 먹으면 나도 안 먹어." (옆에 눕는다)',
+      fx:{aff:-8, flag:'고집'},
+      text:`"…유치하게 굴지 마."
+
+정말로 아무도 손을 대지 않은 채 밤이 지나갔다. 다음 날 아침, 애쉬는 아무 말도 하지 않았다.` },
+
+    { label:'"그럼 나 혼자 다 먹는다?" (진짜 다 먹는다)',
+      fx:{hunger:30, food:-1, aff:2},
+      text:`"……."
+
+잠시 어이없다는 얼굴로 보다가, 피식 웃는다.
+
+"그래. 그래라."` },
+
+    { label:'말없이 절반만 덜어 먹고, 나머지는 그냥 옆에 둔 채 눕는다',
+      fx:{hunger:15, food:-1, aff:8},
+      text:`아무 말도 하지 않았다. 권하지도, 쳐다보지도 않았다.
+
+새벽에 잠깐 깼을 때, 통조림은 비어 있었다.` }
+  ]
+},
+
+/* ══════════════ DAY 2 ══════════════ */
+d2_day: {
+  phase:'낮', place:'약국 거리',
+  next:()=> has('애쉬_부상') ? 'd2_night_a' : 'd2_night_b',
+  text:`유리창이 깨진 약국. 카운터 뒤쪽에서 바스락거리는 소리와 함께 짙은 피비린내가 난다.
+
+애쉬가 입구를 살피며 낮게 말한다.
+
+"안에 있다. 한 마리는 아니야."`,
+  choices:[
+    { label:'쇠파이프를 쥐고 조심스럽게 들어간다', meta:pct(65), roll:65,
+      win:{ fx:{band:2, aff:3},
+        text:`카운터를 돌자마자 튀어나온 것을 파이프로 걷어냈다. 애쉬가 나머지를 처리했다.
+
+조제실 서랍에서 붕대 두 개를 챙겼다.
+
+"…봐줄 만하군."` },
+      lose:{ fx:{hp:-25, injured:true, flag:'애쉬_부상'},
+        text:`발밑이 미끄러졌다. 넘어진 가이 위로 그림자가 덮치는 순간, 애쉬가 끼어들어 막아냈다.
+
+둘 다 성한 곳이 없다. 애쉬의 팔뚝에서 피가 번지고 있었다.
+
+"일어나라. 여기에 있으면 안된다."` } },
+
+    { label:'돌을 멀리 던져 소리를 낸 뒤 반응을 살핀다', meta:pct(85), roll:85,
+      win:{ fx:{band:2, aff:5},
+        text:`돌이 진열대를 때리는 소리에 두 마리가 밖으로 걸어 나왔다. 등 뒤에서 처리하는 건 어렵지 않았다.
+
+"…머리 쓸 줄은 아는군."` },
+      lose:{ fx:{hp:-15, injured:true, aff:5, flag:'애쉬_부상'},
+        text:`유인은 성공했는데, 뒤쪽 창고에서 한 마리가 더 나왔다. 미처 못 본 쪽이었다.
+
+애쉬가 밀쳐내며 대신 팔을 내주었다.
+
+"…머리는 썼는데, 마무리를 못 하는군."` } },
+
+    { label:'"내가 갈 테니까 넌 밖에서 기다려."', fx:{aff:-15, band:1, hp:-10},
+      text:`"……."
+
+애쉬가 가이를 노려보았다.
+
+"혼자 들어가서 뭘 하려고?"
+
+말이 끝나기도 전에 애쉬가 먼저 들어갔다. 가이는 뒤늦게 따라 들어가 바닥에 떨어진 붕대 하나를 주웠을 뿐이다.
+
+나오는 길에 애쉬는 한 번도 뒤를 돌아보지 않았다.` }
+  ]
+},
+
+d2_night_a: {
+  phase:'밤', place:'약국 2층', dayEnd:true, next:'d3_day',
+  text:`애쉬의 팔뚝에 찢어진 상처가 있다. 구급상자를 꺼내자 손을 밀어낸다.
+
+"이 정도로 죽지 않아."`,
+  choices:[
+    { label:'"가만히 있어, 덧나면 큰일이잖아." (손목을 잡아챈다)',
+      lock:()=>S.band<=0, lockText:'붕대가 없다',
+      fx:{aff:-3, band:-1, injured:false},
+      text:`손목을 잡아채자 애쉬가 굳는다.
+
+치료는 순순히 받았다. 끝까지 눈은 마주치지 않았다.` },
+
+    { label:'"나 때문에 다친 거잖아. 미안해."',
+      lock:()=>S.band<=0, lockText:'붕대가 없다',
+      fx:{aff:-10, band:-1, injured:false},
+      text:`"…그만해."
+
+목소리가 낮다.
+
+"네가 그런 얼굴 하면, 내가 다친 게 손해 본 것처럼 되잖아."` },
+
+    { label:'말없이 붕대를 옆에 두고 자기 할 일을 한다',
+      lock:()=>S.band<=0, lockText:'붕대가 없다',
+      fx:{aff:6, band:-1, injured:false},
+      text:`구급상자를 열어 붕대만 꺼내 옆에 놓고, 가이는 자기 짐을 정리했다.
+
+한참 뒤 돌아보니 애쉬가 혼자 서툰 손으로 붕대를 감고 있었다. 눈이 마주치자 시선을 피한다.
+
+"…뭘 봐."` },
+
+    { label:'붕대를 아낀다', fx:{aff:-8},
+      text:`구급상자를 도로 닫았다. 애쉬는 아무 말도 하지 않았고, 상처는 그대로 남았다.` }
+  ]
+},
+
+d2_night_b: {
+  phase:'밤', place:'폐건물', dayEnd:true, next:'d3_day',
+  text:`빗소리가 들린다. 먼저 자라고 했는데도 애쉬가 멀찍이 앉아서 말한다.
+
+"잠이 안 와서."`,
+  choices:[
+    { label:'"이거 다 끝나면 뭐 하고 싶어?"', fx:{aff:4},
+      text:`한참 대답이 없었다.
+
+"…생각해본 적 없다."
+
+빗소리가 지붕을 두드린다. 잠시 뒤, 애쉬가 덧붙였다.
+
+"안 자나?"` },
+
+    { label:'추워 보이는 애쉬에게 담요를 둘러준다', fx:{aff:-6},
+      text:`어깨에 담요가 닿자마자 애쉬가 그것을 걷어 옆에 내려놓았다.
+
+"안 추워."` },
+
+    { label:'말없이 담요를 자기가 덮고 눕되, 애쉬 쪽으로 절반을 펼쳐둔 채 잔다', fx:{aff:7, flag:'담요'},
+      text:`아무 말도 하지 않고 담요를 반만 덮은 채 누웠다. 나머지 절반은 그냥 바닥에 펼쳐져 있었다.
+
+아침에 눈을 떴을 때, 담요는 가이 쪽으로 당겨져 있었다.` }
+  ]
+},
+
+/* ══════════════ DAY 3 ══════════════ */
+d3_day: {
+  phase:'낮', place:'대형 마트 앞', next:'d3_note',
+  text:`주차장 너머로 대형 마트가 보인다. 물자는 많겠지만 안에 뭐가 있을지는 알 수 없다.
+
+애쉬가 검을 반쯤 뽑는다.
+
+"정면으로 뚫고 가야 한다. 시간 끌 거 없어."`,
+  choices:[
+    { label:'애쉬의 의견에 따라 정면으로 돌파한다', meta:pct(65), roll:65,
+      win:{ fx:{food:4, band:1, aff:6},
+        text:`문을 걷어차고 들어갔다. 등을 맞댄 채로, 서로의 부족한 부분을 채워주었다.
+
+마지막 하나가 쓰러졌을 때 애쉬가 숨을 고르며 말했다.
+
+"…다행히 죽지는 않았군."` },
+      lose:{ fx:{hp:-30, food:2}, bite:25,
+        text:`생각보다 많았다. 통로 안쪽에서 계속 쏟아져 나왔다.
+
+식량 몇 개를 움켜쥐고 뒷문으로 굴러 나왔다. 온몸이 성한 데가 없다.` } },
+
+    { label:'끝까지 설득해서 우회한다', fx:{food:1, aff:-5},
+      text:`한참을 실랑이한 끝에 애쉬가 검을 도로 꽂았다.
+
+"겁쟁이 녀석."
+
+투덜대면서도 앞장서서 골목으로 향한다. 민가에서 건진 건 통조림 하나뿐이었다.` },
+
+    { label:'"네가 위험해지는 건 싫어."',
+      branch:()=> S.aff >= 22
+        ? { fx:{aff:20, food:1},
+            text:`애쉬가 말을 멈췄다. 검을 쥔 손이 천천히 내려간다.
+
+"…갑자기 무슨 소리를 하는 거야."
+
+귀 끝이 붉었다. 그날 마트에는 들어가지 않았다.` }
+        : { fx:{aff:-18, food:2, hp:-10},
+            text:`"……."
+
+애쉬가 아무 말 없이 가이를 지나쳐 마트로 걸어 들어갔다.
+
+혼자 문을 열고, 혼자 싸우다가, 혼자 나왔다. 그날 하루 종일 말을 걸지 않았다.` },
+      meta:'애쉬가 어떻게 받아들일지는 지금까지 쌓아온 것에 달렸다' },
+
+    { label:'"네 판단이 맞을 것 같은데, 나 아직 팔이 아파서 뒤는 못 봐줘."',
+      show:()=>has('애쉬_부상'), meta:pct(80), roll:80,
+      win:{ fx:{food:4, band:1, aff:8},
+        text:`"…흥, 약한 소릴 하는군."
+
+그렇게 말하면서도 애쉬가 앞장섰다. 평소보다 훨씬 조심스럽게 움직인다. 한 번도 가이를 앞지르지 않았다.
+
+물자는 넉넉했다.` },
+      lose:{ fx:{hp:-20, food:2}, bite:15,
+        text:`조심했는데도 안쪽에서 한 무리가 쏟아졌다. 애쉬가 길을 뚫는 동안 가이는 뒤를 막다 넘어졌다.
+
+간신히 빠져나왔다.` } }
+  ]
+},
+
+d3_note: {
+  phase:'낮', place:'낡은 서점', next:'d3_raid1',
+  text:`돌아오는 길에 들른 낡은 서점. 식량은 없었지만, 비닐도 뜯지 않은 A5 양장 노트와 펜을 발견했다.
+
+애쉬는 창가에서 바깥을 살피고 있다.`,
+  choices:[
+    { label:'노트를 애쉬에게 건네며 일기라도 써보라고 권한다',
+      fx:{aff:-4, flag:'애쉬_일기'},
+      text:`"…이딴 거 써서 뭐 해."
+
+그렇게 말하면서도 노트를 돌려주지는 않았다. 배낭 안쪽에 아무렇게나 밀어 넣는다.` },
+
+    { label:'가이가 생존 일지와 지도를 그리는 용도로 쓴다',
+      fx:{aff:3, searchUp:10},
+      text:`지나온 길, 물자가 있던 곳, 피해야 할 구역을 적어 넣었다.
+
+애쉬가 곁눈질로 그 페이지를 훔쳐본다. 아무 말도 하지 않았다.` },
+
+    { label:'노트를 짐에 넣고 아무 말도 하지 않는다',
+      fx:{flag:'애쉬_일기'},
+      text:`노트를 배낭에 넣고 그대로 나왔다. 그것에 대해 누구도 언급하지 않았다.` }
+  ]
+},
+
+d3_raid1: {
+  phase:'밤', place:'폐아파트',
+  text:`새벽 세 시. 무언가가 창문 유리를 긁고 있어, 그 소리에 눈을 떴다.
+
+창밖에 무언가가 움직이고 있었다. 한둘이 아니다.
+
+애쉬는 이미 긴장한 얼굴로 문 앞에 서 있었다. 뒤도 돌아보지 않고 말한다.
+
+"…소리 내지 마라. 아직 우릴 못 봤어."`,
+  choices:[
+    { label:'뒷문으로 조용히 빠져나간다', meta:pct(60), roll:60,
+      win:{ fx:{aff:4, food:-1}, endsDay:true,
+        next:()=> S.infected ? 'd4_fever' : 'd4_hospital',
+        goLabel:'날이 밝는다',
+        text:`짐 절반을 두고 나왔다. 골목 두 블록을 기어 나온 뒤에야 애쉬가 숨을 내쉬었다.
+
+"…나쁘지 않은 판단이었다."` },
+      lose:{ fx:()=>{ S.raidMod=-10; return {}; }, next:'d3_raid2',
+        text:`뒷문 경첩이 비명을 질렀다.
+
+일제히 고개가 돌아간다. 애쉬가 가이의 팔을 잡아 끌어당긴다.
+
+"…늦었다."` } },
+
+    { label:'문을 막고 버틴다', meta:pct(70), roll:70,
+      win:{ fx:{hp:-10, aff:2}, endsDay:true,
+        next:()=> S.infected ? 'd4_fever' : 'd4_hospital',
+        goLabel:'날이 밝는다',
+        text:`책장을 밀어 붙이고 새벽까지 문을 눌렀다. 손이 떨리는 걸 애쉬가 봤지만, 아무 말도 하지 않았다.
+
+해가 뜨자 소리가 흩어졌다.` },
+      lose:{ fx:()=>{ S.raidMod=0; return {}; }, next:'d3_raid2',
+        text:`경첩이 먼저 나갔다. 문짝이 안쪽으로 넘어온다.` } },
+
+    { label:'정면으로 뚫는다', fx:()=>{ S.raidMod=0; S.biteMod=-5; return {aff:5}; },
+      next:'d3_raid2',
+      text:`먼저 문을 열어젖혔다.
+
+"…네가 그런 선택을 할 줄은 몰랐는데."
+
+애쉬가 짧게 웃는다. 나쁘지 않은 웃음이었다.` }
+  ]
+},
+
+d3_raid2: {
+  phase:'밤', place:'폐아파트', dayEnd:true,
+  next:()=> S.infected ? 'd4_fever' : 'd4_hospital',
+  text:`애쉬가 등을 맞대며 말한다.
+
+"셋. 아니, 다섯인가. 나한테서 떨어지지 마라."`,
+  choices:[
+    { label:'애쉬와 등을 맞대고 싸운다', meta:()=>`성공률 ${chance(65,{mod:S.raidMod})}%`,
+      roll:65, mod:()=>S.raidMod,
+      win:{ fx:{hp:-15, aff:8},
+        text:`말은 없었다. 애쉬가 왼쪽을 베면 가이가 오른쪽을 후려쳤다.
+
+마지막 한 마리를 애쉬가 베어 넘긴다. 숨을 고르며,
+
+"…다행히 죽지는 않았군."` },
+      lose:{ fx:{hp:-30}, bite:25,
+        text:`한 마리가 뒤에서 붙었다. 떨어뜨렸을 땐 이미 팔이 붙잡힌 뒤였다.` } },
+
+    { label:'내가 미끼가 되고 애쉬를 먼저 보낸다', meta:()=>`성공률 ${chance(55,{mod:S.raidMod})}%`,
+      roll:55, mod:()=>S.raidMod,
+      win:{ fx:{hp:-25, aff:-10},
+        text:`계단 쪽으로 소리를 내며 뛰었다. 계획대로 무리가 따라붙었고, 애쉬는 반대편으로 빠져나갔다.
+
+합류 지점에서 애쉬가 가이의 멱살을 잡는다.
+
+"두 번은 이런 멍청한 선택은 하지 마라. 알겠나?"` },
+      lose:{ fx:{hp:-35}, bite:40,
+        text:`너무 많았다. 계단참에서 따라잡혔다.` } },
+
+    { label:'애쉬 뒤에 붙어 뒤를 막는다', meta:()=>`성공률 ${chance(75,{mod:S.raidMod})}%`,
+      roll:75, mod:()=>S.raidMod,
+      win:{ fx:{hp:-10, aff:3},
+        text:`애쉬가 앞을 뚫고, 가이가 뒤를 막았다.
+
+말은 없었지만 호흡이 맞았다.` },
+      lose:{ fx:{hp:-20}, bite:15,
+        text:`앞이 뚫리는 속도를 뒤가 못 따라갔다. 잠깐 벌어진 틈으로 하나가 파고들었다.` } }
+  ]
+},
+
+/* ══════════════ DAY 4 ══════════════ */
+d4_fever: {
+  phase:'아침', place:'', next:'d4_hospital',
+  text:()=>feverLine()+`
+
+눈을 떴을 때 온 시야가 흔들렸다. 이마가 뜨거워지는 것이 느껴진다.
+
+애쉬가 손등을 갖다 대더니 표정이 굳는다.
+
+"…걷을 수 있겠나."`,
+  choices:[
+    { label:'"괜찮아. 갈 수 있어."',
+      fx:()=>{ S.slow = true; return {aff:-8}; },
+      text:`"거짓말하지 마라."
+
+그날 하루, 애쉬는 계속 뒤를 돌아봤다. 걸음이 반으로 줄었다. 해가 높이 뜨고서야 겨우 목적지에 닿았다.` },
+
+    { label:'"아직 큰 지장은 없어. 정 참기 어려우면 말할게."',
+      fx:{aff:9},
+      text:`잠시 가이를 보다가 고개를 끄덕인다.
+
+"…그래. 말해라. 반드시."` },
+
+    { label:'아무 말 없이 일어나 짐을 챙긴다', fx:{aff:2},
+      text:`짐을 메는 손이 조금 떨렸다. 애쉬가 말없이 물통을 건넨다.` }
+  ]
+},
+
+d4_hospital: {
+  phase:'낮', place:'종합병원',
+  next:()=> has('고집') ? 'd4_night_a' : 'd4_night_b',
+  text:`3층짜리 종합병원. 정문은 막혀 있고, 비상계단 쪽 문만 열려 있다.
+
+애쉬가 창문을 올려다보며 말한다.
+
+"안에 몇 마리나 있을지는 모른다."`,
+  choices:[
+    { label:'비상계단으로 3층 약제실까지 올라간다',
+      meta:()=>`성공률 ${chance(55,{search:true, mod:S.slow?-10:0})}%`,
+      roll:55, search:true, mod:()=>S.slow?-10:0,
+      win:{ fx:{anti:2, band:1, hp:-15, aff:5},
+        text:`계단참마다 멈춰 서며 3층까지 올라갔다. 약제실 캐비닛은 반쯤 털렸지만, 안쪽 서랍에 항생제가 남아 있었다.
+
+"…이 정도면 됐다. 내려가자."` },
+      lose:{ fx:{hp:-25, anti:1}, bite:20,
+        text:`2층 복도에서 문이 안쪽으로 열렸다. 좁은 곳에서 붙는 건 최악이다.
+
+약제실까지는 갔지만 챙긴 건 한 통뿐이었다.` } },
+
+    { label:'1층만 훑고 나온다', meta:pct(85), roll:85,
+      win:{ fx:()=> S.infected ? {band:2, food:1, aff:-5} : {band:2, food:1},
+        text:()=> S.infected
+          ? `1층 접수대와 처치실만 훑고 나왔다. 붕대와 통조림.
+
+나가려는 가이의 팔을 애쉬가 붙잡는다. 처음이었다.
+
+"…위층에 약이 있을 거다. 너도 알지 않나."`
+          : `1층 접수대와 처치실만 훑고 나왔다. 붕대와 통조림. 위험을 감수할 이유는 없었다.` },
+      lose:{ fx:{hp:-15, band:1},
+        text:`접수대 뒤에 하나가 웅크려 있었다. 소리를 듣고 온 것들 때문에 서둘러 나와야 했다.` } },
+
+    { label:'"네가 3층, 내가 1층. 나눠서 가자."', fx:{aff:-14, band:1},
+      text:`애쉬의 눈이 차가워진다.
+
+"따로 움직이자고? 지금?"
+
+주먹을 쥔 손에 힘이 들어간다. 결국 둘 다 1층만 돌고 나왔다. 대화는 없었다.` },
+
+    { label:'"3층으로 가긴 할 건데, 네가 앞장서줘."',
+      show:()=>S.infected, meta:()=>`성공률 ${chance(70,{mod:S.slow?-10:0})}%`,
+      roll:70, mod:()=>S.slow?-10:0,
+      win:{ fx:{anti:2, band:1, hp:-10, aff:10},
+        text:`"…진작 그렇게 말하지 그랬나."
+
+애쉬가 앞장선다. 계단을 오르는 내내 한 번도 가이를 앞지르지 않았다. 층계참마다 멈춰 뒤를 확인한다.
+
+약제실에는 항생제가 남아 있었다.` },
+      lose:{ fx:{hp:-20, anti:1}, bite:15,
+        text:`애쉬가 앞을 정리하는 동안에도 가이의 다리가 말을 듣지 않았다. 열 때문이다.
+
+한 통은 챙겼다.` } }
+  ]
+},
+
+d4_night_a: {
+  phase:'밤', place:'', dayEnd:true, next:'d5_day',
+  text:`배낭을 정리하다 손에 뭔가 걸렸다.
+
+종이에 싸인 에너지바. 애쉬의 몫이었던 것.
+
+언제부터 내 가방에 들어 있었는지는 알 수 없다.`,
+  choices:[
+    { label:'"이거 네 거잖아."라고 꺼낸다', fx:{aff:-6},
+      text:`"…버리려던 거다."
+
+애쉬가 낚아채듯 가져가 자기 주머니에 도로 넣었다.` },
+
+    { label:'아무 말 없이 반으로 쪼개 하나를 옆에 둔다', fx:{aff:12, hunger:15},
+      text:`포장을 뜯어 반으로 쪼갰다. 하나는 먹고, 하나는 그냥 옆에 놓아두었다.
+
+다음 날 아침, 애쉬 쪽 절반이 없어져 있었다.` },
+
+    { label:'못 본 척 도로 넣는다', fx:{aff:4},
+      text:`손을 뺐다. 아무것도 못 본 것으로 했다.` }
+  ]
+},
+
+d4_night_b: {
+  phase:'밤', place:'', dayEnd:true, next:'d5_day',
+  text:`빗물을 받아 끓이는 중이다. 애쉬가 불빛을 등지고 앉아 무기를 닦고 있다.`,
+  choices:[
+    { label:'"그 총, 원래 누구 거였어?"', fx:{aff:5},
+      text:`손이 잠깐 멈춘다.
+
+"…죽은 녀석의 것을 가져온 거다."
+
+그 이상은 말하지 않았다.` },
+
+    { label:'옆에 앉아 같이 무기를 손질한다', fx:{aff:6},
+      text:`대화는 없었다. 불 타는 소리와 쇠를 문지르는 소리만 한참 이어졌다.
+
+나쁘지 않은 밤이었다.` },
+
+    { label:'"안 피곤해? 좀 자."', fx:{aff:-5},
+      text:`"네가 정할 일이 아니다."
+
+천이 쇠를 문지르는 소리가 조금 거칠어졌다.` }
+  ]
+},
+
+/* ══════════════ DAY 5 ══════════════ */
+d5_day: {
+  phase:'낮', place:'분기점',
+  next:()=> has('물림') ? 'd5_night_a' : (has('애쉬_일기') ? 'd5_night_b' : 'd5_night_c'),
+  text:()=> `지도상 방향은 두 갈래다.
+
+왼쪽은 고가도로. 시야가 트여 있지만 몸을 숨길 데가 없다.
+오른쪽은 지하 배수로. 어둡고 좁지만 소리가 새지 않는다.
+
+` + (S.aff >= 20
+  ? `애쉬가 가이를 본다. 처음으로, 먼저 묻는다.
+
+"…어느 쪽으로 갈지, 네가 정해라."`
+  : `애쉬가 지도를 낚아채 접는다.
+
+"고가도로다. 다른 말 마라."`),
+  choices:[
+    { label:'고가도로로 간다', meta:pct(60), roll:60,
+      win:{ fx:{food:2},
+        text:`탁 트인 길을 빠르게 걸었다. 시야가 좋으니 피할 것도 미리 보였다.
+
+중간에 버려진 차 트렁크에서 통조림 두 개를 건졌다.` },
+      lose:{ fx:{hp:-25}, bite:30,
+        text:`중간 지점에서 마주쳤다. 양쪽이 다 뚫려 있으니 숨을 데가 없다.
+
+난간을 넘어 아래 화단으로 뛰어내리는 수밖에 없었다.` } },
+
+    { label:'지하 배수로로 간다', meta:pct(75), roll:75,
+      win:{ fx:{hp:-15, aff:5},
+        text:`허리를 굽히고 물을 헤치며 걸었다. 어둠 속에서 애쉬가 가이의 소매를 잡았다.
+
+"…놓치면 못 찾으니까 잡고 가는 거다."
+
+그 손은 출구가 보일 때까지 놓이지 않았다.` },
+      lose:{ fx:{hp:-25}, bite:15,
+        text:`좁은 관로 안에서 하나와 마주쳤다. 물러설 곳이 없어 정면으로 붙는 수밖에 없었다.` } },
+
+    { label:'"네가 더 잘 아니까 네가 정해."',
+      show:()=>S.aff >= 20,
+      fx:{aff:-12, food:1, hp:-10},
+      text:`"……."
+
+애쉬의 표정이 굳는다.
+
+"나는 방금, 네가 정하라고 말했다."
+
+결국 고가도로로 갔다. 그 길 위에서 애쉬는 한마디도 하지 않았다.`,
+      meta:'애쉬가 방금 내민 것을 되돌려주는 셈이 된다' }
+  ]
+},
+
+d5_night_a: {
+  phase:'밤', place:'', dayEnd:true, next:'d6_day1',
+  text:`애쉬가 모닥불 너머에서 가이를 보고 있다. 오래.
+
+"…팔, 보여줘라."
+
+목소리가 평소보다 낮다. 무기는 무릎 위에 놓여 있다.`,
+  choices:[
+    { label:'순순히 소매를 걷는다',
+      branch:()=> S.inf >= 50
+        ? { fx:()=>{ S.antiOn=true; return {aff:12}; },
+            text:`애쉬가 상처를 오래 들여다본다. 색이 변해 있었다.
+
+아무 말도 하지 않고 품에서 항생제를 꺼내 가이의 손에 쥐여준다. 언제부터 가지고 있었는지 모를 것이었다.
+
+"…삼켜."` }
+        : { fx:{aff:8},
+            text:`소매를 걷어 팔을 내밀었다. 애쉬가 한참을 들여다본다.
+
+"…아직이군."
+
+무기를 옆으로 치운다. 그날 밤, 애쉬는 자지 않았다.` } },
+
+    { label:'"안 물렸어."라고 거짓말한다', fx:{aff:-20, flag:'불신'},
+      text:`애쉬가 천천히 일어선다.
+
+"…그래."
+
+그날 밤, 가이는 애쉬가 자기 쪽으로 등을 돌리고 눕는 것을 보았다. 처음 있는 일이었다.` },
+
+    { label:'"물렸어. 아직 시간은 있지만, 내가 변하면 그다음은 네가 정해줘."',
+      fx:{aff:15, flag:'약속'},
+      text:`애쉬가 한참 침묵하다 말한다.
+
+"내가 정하라고?"
+
+"응."
+
+"…."
+
+무기를 옆에 내려놓는다.
+
+"…그런 건, 정하고 싶지 않다."` },
+
+    { label:'"지금 해줘."', show:()=>S.inf >= 40,
+      fx:{flag:'최후'},
+      text:`애쉬가 무기를 든다. 그리고 내려놓는다.
+
+들었다가, 내려놓는다. 그 동작을 몇 번이나 반복한다.
+
+불이 사그라들 때까지, 애쉬는 결국 아무것도 하지 못했다.`,
+      next:'ending', goLabel:'…' }
+  ]
+},
+
+d5_night_b: {
+  phase:'밤', place:'', dayEnd:true, next:'d6_day1',
+  text:`불침번 교대 시간인데 애쉬가 깨어 있다.
+
+등을 돌린 채 무릎 위에 노트를 펼쳐놓고 있다. 손에 든 펜은 한참 움직이지 않았다.
+
+가이가 다가가는 걸 눈치채고도, 애쉬는 노트를 덮지 않았다.`,
+  choices:[
+    { label:'어깨 너머로 들여다본다', fx:{aff:12},
+      text:`딱 한 줄 적혀 있었다.
+
+~오늘도 살아남았다.
+
+그 밑에 몇 번이나 썼다 지운 자국. 눌린 자국만 남아 읽을 수는 없었다.
+
+애쉬가 노트를 덮는다.
+
+"…별 내용은 없어."` },
+
+    { label:'"뭐 써?"라고 묻는다', fx:{aff:-6},
+      text:`노트가 닫혔다.
+
+"아무것도."` },
+
+    { label:'못 본 척 자기 자리로 돌아간다', fx:{aff:3},
+      text:`아무것도 못 본 것처럼 돌아섰다.
+
+등 뒤에서, 펜이 종이를 긁는 소리가 다시 시작됐다.` },
+
+    { label:'옆에 앉아 아무 말 없이 같이 밤을 샌다', fx:{aff:8},
+      text:`옆에 앉았다. 애쉬는 노트를 덮지도, 무엇을 쓰는지 말하지도 않았다.
+
+두 사람 다 한마디도 하지 않은 채로 해가 떴다.` }
+  ]
+},
+
+d5_night_c: {
+  phase:'밤', place:'', dayEnd:true, next:'d6_day1',
+  text:`오늘은 아무 일도 없었다. 아무도 다치지 않았고, 아무도 물리지 않았다.
+
+그게 이상했다.
+
+애쉬가 불쑥 말한다.
+
+"…네 녀석, 언제까지 이럴 셈이냐."`,
+  choices:[
+    { label:'"뭐가?"', fx:{aff:-4},
+      text:`"…아니다. 잊어라."
+
+애쉬가 자리를 옮겨 앉았다. 그걸로 대화는 끝났다.` },
+
+    { label:'"그 질문, 다음엔 너한테 먼저 물어볼게."', fx:{aff:12, flag:'약속'},
+      text:`애쉬가 가이를 오래 쳐다본다.
+
+"…약속했다."
+
+짧은 말이었지만, 그날 밤 애쉬는 등을 돌리지 않고 잤다.` },
+
+    { label:'아무 말 없이 애쉬 손에서 무기를 빼내 옆에 내려놓는다', fx:{aff:16},
+      text:`손이 굳는다. 뿌리치지는 않았다.
+
+한참 뒤에야 목소리가 나왔다.
+
+"…비겁하군."
+
+갈라진 목소리였다.` }
+  ]
+},
+
+
+
+/* ══════════════ DAY 6 — 폐교 ══════════════ */
+d6_day1: {
+  phase:'낮', place:'폐교', next:'d6_day2',
+  text:`창문이 전부 안쪽에서 판자로 막힌 학교였다. 누군가 오래 버텼던 흔적이 곳곳에 남아 있다.
+
+교실 안으로 들어가니 급식실 문에 분필로 쓴 글씨가 보인다.
+
+~— 남은 사람은 서쪽으로.
+
+애쉬가 그 글씨를 한참 본다.
+
+"…우리보다 먼저 온 놈들이 있었군."`,
+  choices:[
+    { label:'급식실 안쪽 창고까지 턴다', meta:pct(60,{search:true}), search:true, roll:60,
+      win:{ fx:{food:2, hp:-10},
+        text:`배식대 뒤 창고 문을 억지로 열었다. 통조림 두 개. 나머지는 이미 누가 다 가져간 뒤였다.` },
+      lose:{ fx:{hp:-20, food:1}, bite:15,
+        text:`창고 안쪽 어둠에서 뭔가가 넘어왔다. 좁은 곳이라 휘두를 공간도 없었다.` } },
+
+    { label:'보건실만 확인한다', meta:pct(90), roll:90,
+      win:{ fx:()=> S.infected ? {anti:1, band:2, aff:5} : {anti:1, band:2},
+        text:()=> S.infected
+          ? `약장은 대부분 비어 있었지만 안쪽 서랍에 항생제 한 통이 남아 있었다.
+
+"…잘 선택했다."
+
+애쉬가 처음으로 안전한 쪽을 칭찬했다.`
+          : `약장은 대부분 비어 있었지만 안쪽 서랍에 항생제 한 통이 남아 있었다. 붕대도 챙겼다.` },
+      lose:{ fx:{hp:-10, band:1},
+        text:`침대 커튼 뒤에 하나가 있었다. 소리를 듣고 몰려오기 전에 나와야 했다.` } },
+
+    { label:'"너 먼저 쉬고 있어. 내가 보고 올게."', fx:{aff:-12, food:2, hp:-15},
+      text:`"……."
+
+애쉬가 판자 하나를 뜯어 창틀에 기대 세운다.
+
+"난 쉬고 싶다고 한 적이 없는데."
+
+결국 둘 다 돌아보게 되었고, 둘 다 지쳤다.` },
+
+    { label:'반씩 나눠서 훑고 30분 뒤 여기서 만나기로 한다',
+      warm:true, lock:()=>S.aff < 40,
+      lockText:'애쉬가 떨어지는 걸 받아들이지 않을 것 같다',
+      meta:pct(75,{search:true}), search:true, roll:75,
+      win:{ fx:{food:4, anti:2, aff:9},
+        text:`"…시간은 정확히 지켜라."
+
+정확히 30분 뒤, 애쉬는 이미 문 앞에 서 있었다. 언제부터 서 있었는지는 묻지 않았다.
+
+둘이 나눠 돈 만큼 챙긴 것도 두 배였다.` },
+      lose:{ fx:{hp:-25, aff:-8}, bite:20,
+        text:`서쪽 복도에서 소리가 났을 때, 애쉬는 반대편 끝에 있었다.
+
+혼자 감당해야 했다. 애쉬가 도착했을 땐 이미 늦은 뒤였다.
+
+"…내가 왜 이런 걸 수락했을까."` } }
+  ]
+},
+
+d6_day2: {
+  phase:'낮', place:'교실 창가',
+  next:()=> S.infected ? 'd6_night_a' : 'd6_night_b',
+  text:`나가기 전, 애쉬가 교실 창가에 멈춰 섰다. 벽에 붙은 학급 사진을 보고 있다.
+
+그리고 등을 돌린 채 묻는다.
+
+"…넌 왜 나한테 이렇게까지 하는 거지?"
+
+"내 동생이야. 내 일이라고. 근데 네가 왜 나서는 거지?"`,
+  choices:[
+    { label:'"나도 그 녀석을 찾아야 하니까."', fx:{aff:2},
+      text:`"…그래."
+
+그게 전부였고, 애쉬는 더 묻지 않았다.` },
+
+    { label:'"내가 그 녀석을 놓쳤으니까."', fx:{aff:8, flag:'첫고백'},
+      text:`애쉬의 어깨가 굳는다. 뒤를 돌아보지는 않았다.
+
+"…그날?"
+
+한참을 기다렸지만, 애쉬는 그 이상 묻지 않았다. 대신 사진을 벽에서 떼어 접었다.` },
+
+    { label:'"널 혼자 두면 안 될 것 같아서."', fx:{aff:-14},
+      text:`애쉬가 돌아본다. 표정이 없다.
+
+"…내가 혼자 뭘 못할 것 같나?"
+
+그날 오후 내내 애쉬는 세 걸음 앞에서 걸었다.` },
+
+    { label:'대답하지 않는다', fx:{aff:-4},
+      text:`"…됐다. 대답 안 해도 돼."
+
+말은 그렇게 했지만, 목소리에서 실망감이 묻어났다.` }
+  ]
+},
+
+d6_night_a: {
+  phase:'밤', place:'', dayEnd:true, next:'d7_day',
+  text:()=>feverLine()+`
+
+애쉬가 항생제 통을 흔들어 보고는 얼굴을 찌푸린다.
+
+"…많진 않군."
+
+대답하기 전에 애쉬가 먼저 답한다.
+
+"5일. 아껴 쓰면 8일."`,
+  choices:[
+    { label:'"그때까지 목적지에 도착하면 돼."', fx:{aff:7},
+      text:`애쉬가 지도를 펼친다. 처음으로 먼저 서쪽 이야기를 꺼냈다.` },
+
+    { label:'"버티지 못하면 어떡하지."', fx:{aff:-6},
+      text:`"…그런 소리 하지 마라."
+
+목소리가 낮았다. 그날 밤 애쉬는 자지 않았다.` },
+
+    { label:'항생제 통을 말없이 애쉬 배낭에 옮겨 넣는다', fx:{aff:14, flag:'위탁'},
+      text:`아무 말도 하지 않았다.
+
+애쉬가 통을 꺼내 한참 들여다보다가, 도로 넣는다.
+
+"…나보고 관리하라는 뜻인가."
+
+대답하지 않았다.
+
+~이제부터 감염도가 70을 넘으면 애쉬가 알아서 항생제를 먹인다.` },
+
+    { label:'"아직 괜찮아." <span class="aside">(괜찮은 척 말한다)</span>', fx:{aff:-15, flag:'숨김'},
+      text:`"…그런가."
+
+믿는 얼굴이 아니었다. 그래도 더 캐묻지는 않았다.` }
+  ]
+},
+
+d6_night_b: {
+  phase:'밤', place:'', dayEnd:true, next:'d7_day',
+  text:`애쉬가 낮에 떼어낸 사진을 불빛에 비춰 보고 있다.
+
+가이가 다가가자 접어 넣으려다 만다.
+
+"…이 학교였다. 그 녀석이 다니던 곳이."`,
+  choices:[
+    { label:'"루크 얘기 좀 해줄래?"', fx:{aff:10, flag:'이해'},
+      text:`애쉬는 짧게 말했다. 잘 웃었고, 잘 울었고, 겁도 많았다고.
+
+"…나랑은 정반대였지."` },
+
+    { label:'"너도 여기 다녔어?"', fx:{aff:6},
+      text:`"…같은 반이었다."
+
+그 말이 무슨 뜻인지 깨닫는 데 몇 초가 걸렸다.` },
+
+    { label:'"닮았네, 둘이."', fx:{aff:-16},
+      text:`사진이 접힌다.
+
+"…그래. 그렇겠지."
+
+애쉬는 그 말에 등을 돌려 버렸다.` },
+
+    { label:'아무 말 없이 옆에 앉아 사진을 같이 본다', fx:{aff:12},
+      text:`한참을 그렇게 있었다. 애쉬가 먼저 사진을 접었다.
+
+"…찾아내고 말 거다."
+
+다짐인지 부탁인지 알 수 없는 말투였다.` }
+  ]
+},
+
+/* ══════════════ DAY 7 — 육교 밑 ══════════════ */
+d7_day: {
+  phase:'낮', place:'육교 밑', next:'d7_night',
+  text:`육교 아래에 사람이 쓰러져 있다. 다리를 절뚝이며 손을 든다.
+
+"…제발. 3일 동안 굶었어요."
+
+애쉬가 가이의 앞을 막아선다. 검을 뽑지는 않았다.
+
+"…네가 판단해라. 나는 어느 쪽이든 따를 테니."`,
+  choices:[
+    { label:'식량과 붕대를 나눠준다',
+      lock:()=> S.food<1 || S.band<1, lockText:'나눠줄 물자가 없다',
+      meta:pct(65), roll:65,
+      win:{ fx:{food:-1, band:-1, aff:6, flag:'빚'},
+        text:`남자가 지도 한 귀퉁이를 찢어 건넨다.
+
+"서쪽 정수장. 사람이 있어요. 아직."
+
+멀어지는 뒷모습을 애쉬가 오래 본다.
+
+"…네 녀석다운 선택이군."` },
+      lose:{ fx:{food:-3, band:-2, anti:-1, aff:-5, flag:'도둑'},
+        text:`다음 날 아침, 배낭이 가벼웠다.
+
+애쉬는 아무 말도 하지 않았다. 그게 더 아팠다.` } },
+
+    { label:'붕대만 던져주고 지나간다',
+      lock:()=> S.band<1, lockText:'붕대가 없다',
+      fx:{band:-1, aff:3},
+      text:`붕대 하나가 바닥에 떨어졌다.
+
+"…고마워요."
+
+뒤에서 들린 말에 애쉬가 짧게 대꾸했다. "따라오지 마라."` },
+
+    { label:'외면한다', fx:{aff:0},
+      text:`지나쳤다. 애쉬는 비난하지 않았다.
+
+다만 그날 하루 말수가 줄었다.` },
+
+    { label:'"네가 정해."', fx:{aff:-16},
+      text:`"……."
+
+"내가 방금, 네 판단을 따르겠다고 했을 텐데."
+
+결국 애쉬가 붕대를 던져주고 앞장섰다. 그날 밤까지 눈을 마주치지 않았다.` },
+
+    { label:'데려간다', warm:true,
+      lock:()=> S.aff < 55, lockText:'애쉬가 받아들이지 않을 것 같다',
+      fx:{food:-2, aff:10, flag:'빚'},
+      text:`"…하루만이다."
+
+남자는 하루 만에 제 발로 떠났다. 떠나기 전에 지도를 그려주고 갔다.
+
+"이게 도움이 되길 바랍니다."` }
+  ]
+},
+
+d7_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d8_day',
+  text:()=> (S.infected
+    ? `열이 오른 몸을 눕히자, 애쉬가 젖은 천을 이마에 올렸다. 손이 차갑다.`
+    : `불 앞에서 애쉬가 불쑥 말했다.`) + `
+
+"묻고 싶은게 있다, 가이."
+
+장작이 무너지며 불티가 튄다.
+
+"넌 어쩌다가 루크를 알게 된거지?"
+
+"어쩌다보니 선후배 관계로 지내고 있었어. 그러다 대피소로 가는 길에 인파에 휩쓸려 버린거야. 손을 놓쳤거든."
+
+"……."
+
+"그런데 반대편에서 같은 얼굴을 봤어. 그래서 붙잡았지."
+
+애쉬가 천천히 고개를 든다.
+
+"…그게 나였나."
+
+"응."`,
+  choices:[
+    { label:'침묵한다', fx:{aff:-10},
+      text:`"…그랬군."
+
+그 뒤로 애쉬는 두 번 다시 묻지 않았다.` },
+
+    { label:'"네가 루크인 줄 알았어."', fx:{aff:-6},
+      text:`"…알고 있다."
+
+목소리가 이상하리만치 평평했다.
+
+"우린 똑같이 생겼으니."` },
+
+    { label:'"내가 좀 더 잘 잡고 있을걸."', fx:{aff:4},
+      text:`"…미안할 건 없다."
+
+짧게 자른 대답이었다. 그 뒤가 있었는데 삼킨 것 같았다.` },
+
+    { label:'"넌 왜 나와 함께 다니지?"', fx:{aff:13},
+      text:`애쉬가 처음으로 시선을 피한다.
+
+"…네가 마지막으로 그 녀석을 본 사람이니까."
+
+그리고 아주 작게, 거의 들리지 않게 덧붙였다.
+
+"…그게 이유의 전부였다면, 진작 따로 움직였겠지만."` }
+  ]
+},
+
+/* ══════════════ DAY 8 — 안전 가옥 ══════════════ */
+d8_day: {
+  phase:'낮', place:'안전 가옥', next:'d8_night',
+  text:`이틀 만에 지붕 아래다. 어제 내린 비가 빗물통에 가득 차 있다.
+
+애쉬가 손을 넣어보고는 짧게 말한다.
+
+"…씻을 수 있겠군."`,
+  choices:[
+    { label:'하루 완전히 쉬어간다', fx:{hp:25, aff:5},
+      text:`아무것도 하지 않은 하루. 8일 만에 처음이었다.` },
+    { label:'반나절만 쉬고 오후에 이동한다', fx:{hp:10, food:1},
+      text:`해가 기울 무렵 다시 짐을 멨다. 뒷마당 텃밭에서 통조림 하나를 더 건졌다.` },
+    { label:'쉬지 않고 서쪽으로 계속 간다', fx:{hp:-10, aff:-9},
+      text:`"…미쳤나."
+
+그렇게 말하면서도 따라왔다. 그날 밤 애쉬는 절뚝였다.` }
+  ]
+},
+
+d8_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d9_day',
+  text:`물통 옆에서 애쉬가 젖은 머리를 거칠게 털어내고 있다.
+
+젖은 머리를 내린 옆얼굴을 불빛 아래에서 보니, 정말로 그 애를 닮아 있었다.
+
+시선을 눈치챈 애쉬가 등을 돌린다.
+
+"…그렇게 보지 마라."`,
+  choices:[
+    { label:'"미안."', fx:{aff:-8},
+      text:`"…사과할 일도 아니잖나."
+
+젖은 수건이 바닥에 떨어지는 소리가 유난히 크게 들렸다.` },
+
+    { label:'수건을 빼앗아 직접 머리를 닦아준다', fx:{aff:-4},
+      text:`손목을 잡히자 굳는다. 밀어내려다 멈추고, 결국 가만히 있었다.
+
+"…다음부턴 말하고 해라."` },
+
+    { label:'말없이 마른 수건을 옆에 놓고 돌아선다', fx:{aff:9},
+      text:`돌아서는 등 뒤로 천이 스치는 소리가 났다.
+
+한참 뒤, 애쉬가 낮게 말했다.
+
+"…고맙다."
+
+8일 만에 처음 듣는 말이었다.` },
+
+    { label:'"머리 묶는 거 도와줄까."', fx:{aff:12},
+      text:`"…네가?"
+
+어이없다는 얼굴로 보다가, 결국 등을 돌리고 앉았다.
+
+젖은 머리카락을 손가락으로 갈라 넘기는 동안 애쉬는 한마디도 하지 않았다. 목덜미가 붉어져 있었다.
+
+다 묶고 손을 떼자, 애쉬가 그대로 앉은 채 말했다.
+
+"…생각보다 잘 하는군."` },
+
+    { label:'"너 루크랑 별로 안 닮았어."', warm:true,
+      lock:()=> S.aff < 65,
+      lockText:'지금 이 말을 꺼내면, 애쉬가 믿지 않을 것 같다',
+      fx:{aff:18, flag:'구별'},
+      text:`애쉬가 굳는다. 천천히 돌아본다. 젖은 머리끝에서 물이 떨어진다.
+
+"…뭐?"
+
+"얼굴은 좀 닮았어도 하는 행동이나 말투를 보면 너무 달라."
+
+"……."
+
+"게다가 넌 좀처럼 웃질 않잖아."
+
+애쉬가 입을 열었다가 다물었다. 몇 번을 그러다 결국 입을 열었다.
+
+"…그딴 걸 왜 신경 쓰고 있나."
+
+목소리가 갈라져 있었다.` },
+
+    { label:'"아직도 가끔 널 보면 걔가 생각나."', fx:{aff:-20},
+      text:`애쉬가 수건을 내려놓는다.
+
+"…그래. 알고 있었다."
+
+"처음부터."
+
+그날 밤, 애쉬는 밖에서 잤다.` }
+  ]
+},
+
+/* ══════════════ DAY 9 — 물류창고 ══════════════ */
+d9_day: {
+  phase:'낮', place:'물류창고',
+  next:()=> S.infected ? 'd9_night_a' : itemNight(),
+  text:`서쪽으로 가는 유일한 길목에 대형 물류창고가 서 있다. 우회로는 보이지 않는다.
+
+안쪽에서 소리가 난다. 보아하니 스무 마리는 넘을 것 같다.
+
+그리고 적재장 철문 옆에, 낯익은 색의 천이 걸려 있었다.
+
+애쉬가 먼저 발견한 모양이다.
+
+"…저거."`,
+  choices:[
+    { label:'소음탄을 만들어 무리를 반대편으로 유인한다', meta:pct(70,{search:true}), search:true, roll:70,
+      win:{ fx:{hp:-10, aff:8, flag:'일기장'},
+        text:`빈 깡통에 볼트를 채워 반대편 하치장으로 던졌다. 소리가 울리는 동안 적재장 안쪽까지 들어갔다.
+
+누군가 며칠 머문 흔적. 담요와 빈 물병, 그리고 노트 한 권.
+
+**루크의 일기**
+
+마지막 장에 날짜와 좌표가 적혀 있다. 3일 전. 아직 살아 있다.
+
+그 아래 한 줄이 더 있었다.
+
+~— 가이랑 같이 있었으면 좋았을 텐데. 혼자는 좀 무서워.` },
+      lose:{ fx:{hp:-30, flag:'겉옷'}, bite:30,
+        text:`소음탄이 너무 가까이서 터졌다. 무리가 이쪽으로 방향을 틀었다.
+
+철문 옆 천만 겨우 낚아채고 빠져나왔다.
+
+**루크의 겉옷.** 소매 안쪽에 이름이 적혀 있다. 가이가 직접 써준 글씨였다.` } },
+
+    { label:'애쉬와 정면으로 뚫는다',
+      lock:()=> S.inf >= 80, lockText:'지금 몸으로는 무리다',
+      meta:pct(55), roll:55,
+      win:{ fx:{hp:-15, aff:10, food:4, anti:2, band:2, flag:'가방'},
+        text:`문을 부수고 들어갔다. 등을 맞대고, 10일 동안 몇 번이나 그랬던 것처럼.
+
+적재장 구석에 배낭 하나가 남아 있었다.
+
+**루크의 가방.** 물자가 그대로 들어 있다. 두고 갔다는 건, 급하게 움직였다는 뜻이다.` },
+      lose:{ fx:{hp:-30, flag:'겉옷'}, bite:30,
+        text:`너무 많았다. 절반도 못 들어가서 밀려났다.
+
+철문 옆 천만 겨우 낚아채고 빠져나왔다.
+
+**루크의 겉옷.** 소매 안쪽에 이름이 적혀 있다. 가이가 직접 써준 글씨였다.` } },
+
+    { label:'천만 회수하고 바로 빠진다', fx:{hp:-5, flag:'겉옷'},
+      text:`철문 옆으로 달려가 천을 낚아채고 그대로 돌아섰다.
+
+**루크의 겉옷.** 소매 안쪽에 이름이 적혀 있다. 가이가 직접 써준 글씨였다.` },
+
+    { label:'"저건 두고 가자."', fx:{aff:-18},
+      text:`"……."
+
+애쉬가 가이를 본다. 아주. 오랫동안.
+
+"네가 그런 선택을 할 줄은 몰랐다."
+
+그날 이후, 서쪽으로 가는 길은 지도에만 남았다.` }
+  ]
+},
+
+d9_night_a: {
+  phase:'밤', place:'', next:()=>itemNight(),
+  text:`창고를 빠져나온 뒤로 애쉬가 말이 없다.
+
+항생제 통을 흔들어 본다. 소리가 가볍다.`,
+  choices:[
+    { label:'"항생제 몇 개 남았어?"', fx:{aff:4},
+      text:`"…묻지 마라."` },
+    { label:'"네가 필요할 때가 오면 먼저 말해."', fx:{aff:12},
+      text:`"…나는 안 물렸다."
+
+"알아. 그래도."
+
+애쉬가 통을 도로 넣는다. 아무 말도 하지 않았다.` },
+    { label:'남은 항생제를 절반 나눠 애쉬 몫으로 챙겨둔다',
+      lock:()=>S.anti<2, lockText:'나눌 만큼 남아 있지 않다',
+      fx:{aff:16, flag:'나눔'},
+      text:`"…이건 또 뭐야."
+
+애쉬가 오래 침묵하다, 절반을 다시 가이 배낭에 넣는다.
+
+"…그때 가서 정하자."` },
+    { label:'"이제 그만 날 두고 가."', show:()=>S.inf>=60, fx:{aff:-20},
+      text:`애쉬가 멱살을 잡는다. 처음으로 목소리를 높였다.
+
+"그딴 말 한 번만 더 하기만 해봐라."` }
+  ]
+},
+
+d9_diary: {
+  phase:'밤', place:'', dayEnd:true, next:()=>route10(),
+  text:`애쉬가 마지막 장을 몇 번이나 다시 읽는다. 손이 멈춰 있다.
+
+"이 녀석이 널 많이 찾는군."
+
+"혼자가 무섭다니, 이런 상황에도 나약한 소릴 하는군."`,
+  choices:[
+    { label:'"루크가 네 이야기를 했던 것 같아."', fx:{aff:10},
+      text:`"…흥."
+
+애쉬의 귀가 살짝 발개진다.` },
+    { label:'"…걔 말이 맞았네."', fx:{aff:14, flag:'이해'},
+      text:`애쉬가 일기를 덮는다. 한참 뒤에 나온 말이었다.
+
+"…나는 네가 걔 대신 나를 데리고 다니는 줄 알았다."
+
+"내가?"
+
+"아무래도 너와 나는 면식이 없었으니."` },
+    { label:'일기를 덮고 화제를 돌린다', fx:{aff:-6},
+      text:`"…무슨 말이 하고 싶은 거지."` }
+  ]
+},
+
+d9_bag: {
+  phase:'밤', place:'', dayEnd:true, next:()=>route10(),
+  text:`물자를 정리하던 애쉬가 손을 멈춘다.
+
+"…이 모든 물자를 두고 갔다는 건, 쫓기고 있었다는 뜻이다."`,
+  choices:[
+    { label:'"그럼 서둘러야지."', fx:{aff:6},
+      text:`애쉬가 지도를 다시 펼친다. 서쪽 끝에 손톱으로 자국을 냈다.` },
+    { label:'"…살아 있을까."', fx:{aff:4},
+      text:`"살기 위해 짐을 버렸을 테니 괜찮길 바라야지."` },
+    { label:'"루크에겐 미안하지만 이걸로 며칠은 버티겠다. 우리도."', fx:{aff:10},
+      text:`"…그 녀석도 그러라고 두고 갔겠지."
+
+애쉬가 통조림 하나를 던져 준다.` }
+  ]
+},
+
+d9_coat: {
+  phase:'밤', place:'', dayEnd:true, next:()=>route10(),
+  text:`애쉬가 겉옷을 무릎에 펴놓고 소매의 이름을 들여다보고 있다.
+
+"옷에 이름도 박아놨다니."
+
+"내가 해준 거야."
+
+"…그렇군."`,
+  choices:[
+    { label:'"응. 잃어버릴까 봐 써줬어."', fx:{aff:8},
+      text:`애쉬가 소매를 한 번 쓸어 본다. 아무 말도 하지 않았다.` },
+    { label:'"…왜 이걸 두고 갔을까."', fx:{aff:5},
+      text:`"급했겠지. 아니면… 누가 찾아주길 바랐거나."` },
+    { label:'애쉬 어깨에 겉옷을 덮어준다', fx:{aff:-12},
+      text:`"갑자기 뭐 하는 짓이냐."
+
+곧바로 벗어 접어놓았다. 손이 조금 떨렸다.` }
+  ]
+},
+
+d9_none: {
+  phase:'밤', place:'', dayEnd:true, next:()=>route10(),
+  text:`그날 밤 애쉬는 지도만 들여다봤다.
+
+한 번도 가이 쪽을 보지 않았다.`,
+  choices:[
+    { label:'"…미안."', fx:{aff:4},
+      text:`"됐다."
+
+그게 전부였다.` },
+    { label:'아무 말도 하지 않는다', fx:{aff:-4},
+      text:`불이 꺼질 때까지 아무도 입을 열지 않았다.` }
+  ]
+},
+
+/* ══════════════ DAY 10 ══════════════ */
+d10_fence: {
+  phase:'낮', place:'정수장 철조망', next:'d10_night',
+  text:()=>`급수탑까지 400미터. 안쪽에 사람들이 있는 듯했지만 들어갈 수 없었다. 정문 앞 공터에 스무 마리 남짓이 흩어져 있었기 때문이다.
+
+안쪽 사람들은 섣불리 문을 열어주지 못한다.
+
+철조망 너머에서 누군가 소리친다.
+
+"거기 두 사람! 서쪽 배수구로 돌아와요! 정문은 못 열어요!"
+
+` + (has('빚')
+  ? `목소리가 낯익다. 3일 전 육교 아래에서 만난 그 남자였다. 절뚝이면서도 배수구 쪽으로 먼저 달려가고 있다.
+
+"제가 안에서 열어둘게요! 빨리요!"
+
+`
+  : has('도둑')
+  ? `그 목소리도 낯익었다. 배낭을 털어 간 그 남자였다. 가이를 알아본 순간 얼굴이 하얗게 질린다.
+
+애쉬가 아주 잠깐 검자루에 손을 얹었다가, 뗐다.
+
+`
+  : ``) + `애쉬가 배수구 쪽을 흘끗 본다. 성인 하나가 겨우 지날 좁이다.
+
+"…한 명씩 들어가야겠군."`,
+  choices:[
+    { label:'애쉬를 먼저 들여보낸다',
+      meta:()=>`성공률 ${chance(70,{mod:has('빚')?15:0})}%`, roll:70, mod:()=>has('빚')?15:0,
+      win:{ fx:{aff:10, hp:-10},
+        text:`애쉬는 처음에 안 가겠다고 버텼다. 위험하니 빨리 들어가라고 등을 떠밀자 욕을 하면서 기어 들어간다.
+
+뒤이어 들어가는 동안, 배수구 반대편에서 팔이 뻗어 나와 계속 이쪽을 붙잡고 있었다.` },
+      lose:{ fx:{hp:-30, aff:5}, bite:25,
+        text:`애쉬가 들어간 직후 무리가 몰려왔다. 좁은 관 안에서 발목이 잡혔다.
+
+애쉬가 팔을 잡아 끌어냈다. 어깨가 빠질 것 같았다.` } },
+
+    { label:'내가 먼저 들어가 안쪽을 확인한다',
+      meta:()=>`성공률 ${chance(90,{mod:has('빚')?15:0})}%`, roll:90, mod:()=>has('빚')?15:0,
+      win:{ fx:{hp:-15, aff:3},
+        text:`먼저 기어 들어가 안쪽을 확인하고, 애쉬를 불렀다.
+
+애쉬가 들어오는 동안 뒤를 봐줄 수 있었다.` },
+      lose:{ fx:{hp:-25, aff:-8}, bite:25,
+        text:`관 중간에서 막혔다. 뒤에서 애쉬가 이름을 부르는 소리가 들렸다.
+
+그런 목소리는 처음이었다.` } },
+
+    { label:'정문 쪽 무리를 유인해 흩어놓고 둘이 같이 들어간다',
+      lock:()=>S.inf>=80, lockText:'지금 몸으로는 뛸 수 없다',
+      meta:()=>`성공률 ${chance(55,{mod:has('빚')?15:0})}%`, roll:55, mod:()=>has('빚')?15:0,
+      win:{ fx:{aff:14, hp:-15},
+        text:`서로를 믿고 뛰었다. 10일 동안 몇 번이나 그랬던 것처럼.
+
+무리가 정문 쪽으로 쏠린 사이, 두 사람은 나란히 배수구에 도착했다.` },
+      lose:{ fx:{hp:-35}, bite:35,
+        text:`유인이 절반만 먹혔다. 절반은 이쪽으로 왔다.
+
+배수구 앞에서 애쉬가 먼저 가이를 밀어 넣었다.
+
+"…빨리."` } },
+
+    { label:'"네가 판단해."', fx:{aff:-14},
+      text:`"…또 그거군."
+
+결국 애쉬가 먼저 들어갔다. 돌아보지 않았다.` },
+
+    { label:'손을 잡고 들어간다', warm:true,
+      lock:()=> S.aff < 65,
+      lockText:'그날처럼 놓칠까 봐 무섭다. 하지만 지금 애쉬가 받아줄 것 같지 않다',
+      fx:{aff:18, hp:-10, flag:'손'},
+      text:`"아니, 잘 하면 같이 들어갈 수 있어."
+
+이번엔 가이가 먼저 손을 잡았다.
+
+좁은 관 안에서, 10일 전에 놓쳤던 루크의 손을 기억하며 애쉬와 함께 기어 들어갔다.
+
+이번에는 놓지 않았다.` }
+  ]
+},
+
+d10_night: {
+  phase:'밤', place:'급수탑 아래', dayEnd:true, next:'d11_day',
+  text:`내일이면 안으로 들어간다.
+
+애쉬가 불을 뒤적이다 말한다.
+
+"이 모든 걸 감수할 정도로 네게도 루크가 소중한가?"`,
+  choices:[
+    { label:'"뭐, 친구니까."', fx:{aff:8},
+      text:`"…그래."
+
+믿는 건지 아닌지 알 수 없는 대답이었다.` },
+
+    { label:'"응, 미안해."', fx:{aff:-12},
+      text:`"대체 네가 왜 사과하는 거지?"
+
+애쉬가 자리에서 일어난다.
+
+"됐다. 자라."` },
+
+    { label:'"소중하지. 네게도 그렇지 않아?"', fx:{aff:14},
+      text:`애쉬가 불을 오래 본다.
+
+"흥, 그런 녀석 따위 손만 많이 갈 뿐이다."
+
+하지만 부정은 하지 않았다.` },
+
+    { label:'"네가 있었어서 더 찾아야만 할 것 같았어."', warm:true,
+      lock:()=>!has('구별'), lockText:'아직 이 말을 꺼낼 자격이 없는 것 같다',
+      fx:{aff:22, flag:'나중에'},
+      text:`"…갑자기 무슨 말이지?"
+
+"이렇게까지 함께 하게 되니까 너를 위해서라도 루크를 찾아야만 할 것 같아서."
+
+애쉬가 웃었다. 10일 만에 그런 웃는 얼굴을 겨우 볼 수 있었다.
+
+"…나중에 루크를 만나게 되면 할 말이 있다."
+
+나중이 올지는 아무도 모른다. 그래도 고개를 끄덕였다.` }
+  ]
+},
+
+d10_lost: {
+  phase:'낮', place:'서쪽', next:'d10_lost_night',
+  text:`서쪽으로 계속 걸었다. 2일째 아무것도 나오지 않는다.
+
+애쉬가 지도를 접었다 폈다 하다가, 결국 주머니에 넣었다.
+
+"…어디로 가야 하지."
+
+처음으로 애쉬가 길을 물었다.`,
+  choices:[
+    { label:'"돌아가서 다시 찾아보자."', fx:{aff:6, hp:-20, food:-2},
+      text:`왔던 길을 되짚어갔다. 창고는 이미 좀비 무리로 가득 차 있었다.` },
+    { label:'"일단 오늘은 여기서 쉬자."', fx:{hp:10, aff:3},
+      text:`아무 성과 없는 하루. 애쉬는 밤새 지도를 들여다봤다.` },
+    { label:'"미안해. 내가 그냥 가자고 해서."', fx:{aff:12},
+      text:`"……."
+
+"네 탓 아니다."
+
+그렇게 말하는 애쉬의 목소리가 평소보다 낮았다.` },
+    { label:'아무 말도 하지 않는다', fx:{aff:-8},
+      text:`그날 두 사람은 한마디도 하지 않았다.` }
+  ]
+},
+
+d10_lost_night: {
+  phase:'밤', place:'길 위', dayEnd:true, next:'d11_day',
+  text:`10일째 밤. 두 사람은 여전히 길 위에 있다.
+
+애쉬가 불을 뒤적이며 말한다.
+
+"…10일이군."`,
+  choices:[
+    { label:'"아직 기회는 충분히 있어."', fx:{aff:6},
+      text:`"…그런가."
+
+애쉬가 지도를 접어 주머니에 넣었다.` },
+    { label:'"찾을 수 있을까."', fx:{aff:-5},
+      text:`"…그런 건 묻지 마라."` },
+    { label:'"네가 있으니까 괜찮아."', fx:{aff:10},
+      text:`"…무슨 근거로."
+
+부정은 하지 않았다.` }
+  ]
+},
+
+
+/* ══════════════ DAY 11 — 정수장 내부 ══════════════ */
+d11_day: {
+  phase:'낮', place:'정수장',
+  next:()=> S.infected ? 'd11_night_a' : 'd11_night_b',
+  text:`철조망 안쪽은 생각보다 조용했다. 스무 명 남짓이 급수탑 아래 천막에서 지내고 있다.
+
+애쉬가 그들에게 물었다.
+
+"나랑 얼굴이 똑같은 '루크'라는 남자를 본 적이 있나?"
+
+관리인처럼 보이는 여자가 애쉬의 얼굴을 보고 잠시 멈칫하더니 명단을 넘겨본다.
+
+"루크… 있었어요. 당신 얼굴을 보니 확신이 드네요. 이틀 전에 나갔어요."
+
+"북쪽으로. 발전소 쪽이라고 했던 것 같은데."
+
+애쉬가 아무 말도 하지 않는다. 10일을 걸어온 끝에 루크와 엇갈려 버렸다.`,
+  choices:[
+    { label:'"언제 출발할 수 있어?"', fx:{aff:4, hp:-5},
+      text:`"…내일. 아니, 오늘 밤에라도."
+
+애쉬는 이미 지도를 펴고 있었다.` },
+
+    { label:'하루 머물며 물자를 보급받는다', fx:{food:3, band:2, aff:2},
+      text:`대신 하루가 더 벌어졌다. 애쉬는 밤새 급수탑 위에서 북쪽을 봤다.` },
+
+    { label:'관리인에게 루크 이야기를 더 캐묻는다', meta:pct(65), roll:65,
+      win:{ fx:{aff:8, flag:'증언'},
+        text:`"혼자 다니는 걸 무서워했어요. 그래도 사람을 찾겠다고 하면서 계속 물어보더라고요.
+
+검은 옷 입은 남자 못 봤냐고. 자기랑 얼굴 똑같이 생긴 사람이라고."
+
+애쉬가 이마를 짚었다.` },
+      lose:{ fx:{aff:2}, text:`"미안해요. 기억이 잘…"` } },
+
+    { label:'"미안해. 조금만 더 빨랐으면."', fx:{aff:-14},
+      text:`"…네가 사과할 일이 아니라고 몇 번을 말해야 하나."
+
+그날 하루, 애쉬는 천막 밖에 나가 있었다.` },
+
+    { label:'"루크를 찾으면, 여기로 돌아오는 것도 좋겠는데."', warm:true,
+      lock:()=>S.aff<65, lockText:'돌아올 곳을 함께 정하자고 말할 사이는 아직 아니다',
+      fx:{aff:14, flag:'돌아올곳'},
+      text:`애쉬가 급수탑을 올려다본다.
+
+"…돌아올 곳을 정해두는 것도 나쁘진 않겠군."` }
+  ]
+},
+
+d11_night_a: {
+  phase:'밤', place:'진료 천막', dayEnd:true, next:'d12_day',
+  text:()=>feverLine()+`
+
+천막 안쪽에서 나이 든 남자가 팔을 살펴본다. 오래 보지 않아도 알겠다는 얼굴이다.
+
+"…물린 지 며칠 됐어요?"
+
+애쉬가 대답을 가로챈다.
+
+"좀 됐다."
+
+"…늦진 않은 것 같은데, 여기 남아야 완벽하게 치료할 수 있어요."`,
+  choices:[
+    { label:'"그럼 남을게."', fx:{flag:'포기'}, next:'ending', goLabel:'…',
+      text:`"…뭐?"
+
+애쉬가 처음으로 목소리를 높였다.
+
+"여기에 남겠다고?"
+
+"……."` },
+
+    { label:'"응급처치만 받고 갈게요."', fx:{inf:-25, anti:1, hp:-10},
+      text:`남자가 한참을 보다 결국 주사기를 꺼냈다.
+
+"…내일 아침엔 나가요."` },
+
+    { label:'애쉬가 대신 부탁하게 둔다', fx:{inf:-25, anti:2, aff:10},
+      text:`애쉬가 천막 안으로 들어가 문을 닫았다. 무슨 말을 했는지는 듣지 못했다.
+
+"…뭘 봐. 별로 대단한 말은 하지 않았으니 신경 꺼라."` },
+
+    { label:'아무것도 받지 않고 나온다', fx:{aff:6, anti:1, flag:'고집2'},
+      text:`"…제정신인가? 기회를 활용하지 않다니."
+
+하지만 그날 밤, 애쉬는 아무 말 없이 자기 항생제를 가이 손에 쥐여줬다.` }
+  ]
+},
+
+d11_night_b: {
+  phase:'밤', place:'급수탑 위', dayEnd:true, next:'d12_day',
+  text:`급수탑 위에서 북쪽을 바라본다. 애쉬가 난간에 팔을 걸치고 서 있다.
+
+"…조금만 더 일찍 움직였더라면."`,
+  choices:[
+    { label:'"이틀이면 따라잡을 수 있어."', fx:{aff:8},
+      text:`"…그랬으면 좋겠군."
+
+애쉬가 지도를 접어 주머니에 넣었다.` },
+    { label:'"왜 여기 안 남았을까."', fx:{aff:4},
+      text:`"…겁도 많은 녀석이 괜히 우릴 찾겠다고 나서는 바람에 이렇게 됐군."
+
+"뭐가 되었든 안전하길 바랄 뿐이다."` },
+    { label:'옆에 나란히 서서 아무 말도 하지 않는다', fx:{aff:10},
+      text:`바람이 찼다. 애쉬는 가이가 내려갈 때까지 함께 있었다.` },
+    { label:'"그래도 여기까지 온 것만으로도 넌 대단한 거야."', fx:{aff:-6},
+      text:`"…칭찬 따위나 들으려고 온 게 아닐 텐데."
+
+칭찬을 받는 데 익숙하지 않은 사람의 반응이었다.` }
+  ]
+},
+
+/* ══════════════ DAY 12 — 북쪽 국도 ══════════════ */
+d12_day: {
+  phase:'낮', place:'북쪽 국도',
+  next:()=> (S.infected && S.inf >= 50) ? 'd12_night_a' : 'd12_night_b',
+  text:`국도가 버려진 차로 꽉 막혀 있다. 파손된 차량들은 전부 북쪽을 향한 채 멈춰 있었다.
+
+밀집도가 높은 차 사이사이로 움직이는 좀비들이 보인다.
+
+애쉬가 낮게 말한다.
+
+"…차 지붕 위로 다녀야겠는데."`,
+  choices:[
+    { label:'차 지붕을 밟고 건너간다', meta:pct(70), roll:70,
+      win:{ fx:{hp:-10, aff:5}, bite:12,
+        text:`대부분 무사히 건넜으나 마지막 버스에서 뛰어내릴 때, 밑에서 뻗어 나온 팔에 한 번 붙잡혔다.` },
+      lose:{ fx:{hp:-30}, bite:40,
+        text:`지붕 하나가 내려앉았다. 아래로 떨어진 순간, 사방이 손이었다.` } },
+
+    { label:'차 사이로 통과한다', meta:pct(60), roll:60,
+      win:{ fx:{hp:-20}, bite:15,
+        text:`차의 틈 사이로 어떻게든 지나갔다. 위험한 순간이 한두 번이 아니었다.` },
+      lose:{ fx:{hp:-35}, bite:45,
+        text:`좁은 틈에서 막혔다. 앞뒤가 다 막힌 채로 버텨야 했다.` } },
+
+    { label:'우회한다', fx:{food:-2, aff:-5},
+      text:`"…또 돌아가는 수밖에 없나."
+
+애쉬는 마지못해 따라왔지만, 지도에 그은 선이 조금 더 길어졌다.` }
+  ]
+},
+
+d12_night_a: {
+  phase:'밤', place:'', dayEnd:true, next:'d13_day',
+  text:()=>feverLine()+`
+
+새벽에 눈을 떴을 때, 불 건너편에 루크가 앉아 있었다.
+
+루크는 아무 말 없이 웃고 있었다.
+
+입 밖으로 루크의 이름을 부르려 했으나 아무 말도 나오지 않았다.
+
+눈을 몇 번 깜빡이자 거기엔 애쉬가 있었다. 무기를 손질하다 이쪽을 보고 있다.
+
+"…왜 그런 얼굴을 하지."`,
+  choices:[
+    { label:'"아무것도 아니야."', fx:{aff:-8},
+      text:`"…거짓말이 늘었군."` },
+    { label:'"열 때문에 헛것이 보여."', fx:{aff:10},
+      text:`애쉬가 손질하던 걸 내려놓고 옆으로 온다. 그러더니 이마에 손등을 댄다.
+
+"…솔직하게 말해줬군."
+
+그날 밤 애쉬는 잠들지 않았다.` },
+    { label:'"방금 루크가 보였어."', fx:{aff:6},
+      text:`"…"
+
+애쉬가 아무것도 없는 불 건너편을 한참 동안 바라본다.
+
+"…나도 가끔 보인다."` },
+    { label:'"네가 루크로 보였어."', fx:{aff:-18},
+      text:`손질하던 천이 멈춘다.
+
+"…그렇겠지."
+
+애쉬가 고개를 숙인 탓에 표정은 볼 수 없었다.` }
+  ]
+},
+
+d12_night_b: {
+  phase:'밤', place:'승합차 안', dayEnd:true, next:'d13_day',
+  text:`국도 갓길의 승합차 안에서 밤을 보낸다. 뒷좌석이 넓어서 둘 다 누울 수 있었다.
+
+바깥의 추운 날씨를 증명하듯 창문에는 성에가 끼고 있었다.`,
+  choices:[
+    { label:'"이런 데서 자는 것도 오랜만이네."', fx:{aff:5},
+      text:`"잠이나 자라."
+
+애쉬는 그러고는 한참 동안 뒤척인다.` },
+    { label:'좌석 사이에 담요를 펴고 자리를 만든다', fx:{aff:8},
+      text:`"이런 것까지 해줄 필요는 없다."
+
+말과 달리 애쉬는 가이가 마련한 자리에 몸을 뉘인다.` },
+    { label:'"발전소까지 얼마나 남았어?"', fx:{aff:3},
+      text:`애쉬가 지도를 펼친다.
+
+"얼마 남진 않았다. 우선 지금은 자라."` },
+    { label:'"너 요즘 잠은 좀 자?"', fx:{aff:12},
+      text:`"…갑자기 뭘 묻는 거지."
+
+원하는 대답은 아니었지만, 그날 밤은 애쉬가 먼저 잠들었다.` }
+  ]
+},
+
+/* ══════════════ DAY 13 — 중계탑 ══════════════ */
+d13_day: {
+  phase:'낮', place:'통신 중계탑',
+  next:()=> S.infected ? 'd13_stair' : 'd13_tape',
+  text:`국도 옆 언덕에 통신 중계탑이 서 있다. 밑동에 관리소 건물들이 보인다.
+
+문이 안쪽에서 잠겨 있다. 그리고 문틀에 긁어 쓴 글씨.
+
+~— 12일째. 배터리가 다 되면 나가야 해.
+
+애쉬가 그 글씨를 손으로 짚는다.
+
+"…글씨가 선명한 걸 보니 얼마 되지 않았다."`,
+  choices:[
+    { label:'문을 부수고 들어간다', meta:pct(65), roll:65,
+      win:{ fx:{aff:8, hp:-10, flag:'무전기'}, text:()=>RADIO },
+      lose:{ fx:{hp:-25, flag:'무전기'}, bite:35, text:()=>`문짝이 안쪽으로 넘어지면서 함께 넘어졌다. 관리소 안에도 하나가 있었다.
+
+`+RADIO } },
+
+    { label:'중계탑을 타고 2층 창문으로 들어간다', meta:pct(55), roll:55,
+      win:{ fx:{anti:2, food:2, aff:10, flag:'무전기'},
+        text:()=>`철골을 타고 올라 창틀을 넘었다. 2층 창고에 손대지 않은 물자가 남아 있었다.
+
+`+RADIO },
+      lose:{ fx:{hp:-35, flag:'무전기'}, bite:40,
+        text:()=>`중간에서 발판이 꺾였다. 떨어진 자리가 하필 안쪽이었다.
+
+`+RADIO } },
+
+    { label:'애쉬에게 맡기고 밖을 지킨다', fx:{aff:-10, flag:'무전기'},
+      text:()=>`"…또 나한테 미루는 건가."
+
+애쉬가 문을 부수고 들어갔다. 나올 때 애쉬의 손등이 까져 있었다.
+
+`+RADIO }
+  ]
+},
+
+d13_stair: {
+  phase:'낮', place:'관리소 계단', next:'d13_night',
+  text:()=>feverLine()+`
+
+나오는 길에 다리가 풀려 계단 두 칸을 헛디뎠다.
+
+애쉬가 붙잡았다. 팔을 잡은 손에 힘이 너무 들어가 있었다.
+
+"…얼마나 남았지."`,
+  choices:[
+    { label:'감염도를 솔직히 말한다', fx:{aff:12},
+      text:()=>(
+        S.inf >= 85 ? `애쉬가 가이의 팔을 붙든 채 굳었다.
+
+"…왜 여태 아무 말도 안 했지."
+
+목소리가 낮게 갈라졌다. 처음 듣는 소리였다.`
+      : S.inf >= 65 ? `"…생각보다 나쁘군."
+
+애쉬의 표정이 굳는다. 잡은 손을 놓지 않았다.`
+      : S.inf >= 45 ? `"낙관할 수는 없군."`
+      : `"…아직은 버틸 만하겠어."`)
+      + `
+
+`+ (S.anti > 0
+  ? `애쉬가 배낭을 열어 남은 항생제를 세었다. 수가 정확한지 확인하려는 듯 몇 번이고 다시 세었다.`
+  : `애쉬가 배낭을 열었다. 안에는 아무것도 없었다. 그런데도 한참을 들여다봤다.`) },
+    { label:'"괜찮아. 아직 걸을 수 있어."', fx:{aff:-12},
+      text:`"…내가 눈이 없는 줄 아나."
+
+애쉬가 인상을 찌푸린다.` },
+    { label:'"네가 좀 봐줄래?"', fx:{aff:8, flag:'위탁'},
+      text:`그렇게 말하곤 배낭을 건넸다.
+
+애쉬는 가이의 상태를 살피더니 배낭 안을 살핀다.` }
+  ]
+},
+
+d13_tape: {
+  phase:'낮', place:'관리소', next:'d13_night',
+  text:`애쉬가 무전기를 몇 번이나 되감아 듣는다.
+
+"…이번에야말로 만날 수 있으면 좋겠는데."
+
+"그 녀석이 더 이상 싸돌아다니지 말길 바라야지."`,
+  choices:[
+    { label:'"이번엔 그럴 거야."', fx:{aff:3},
+      text:`"…네 말이 맞으면 좋겠군."` },
+    { label:'아무 말 없이 무전기를 애쉬에게 넘긴다', fx:{aff:10},
+      text:`애쉬가 받아 들고 주머니에 넣는다. 손이 주머니에서 한동안 나오지 않았다.` }
+  ]
+},
+
+d13_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d14_day',
+  text:`무전기 배터리 표시등이 빨갛다. 한 번 더 켜면 마지막일지도 모른다.
+
+애쉬가 무전기를 손에 쥔 채 불을 보고 있다.`,
+  choices:[
+    { label:'"지금 한 번 더 들을래?"', fx:{aff:10},
+      text:`애쉬가 고개를 젓는다.
+
+"…발전소에서. 못 만나면 그때 듣지."` },
+    { label:'"아껴. 진짜 필요할 때 쓰자."', fx:{aff:6},
+      text:`"…알겠다."
+
+애쉬는 금방 수긍한다.` },
+    { label:'"네가 대답해 봐. 혹시 듣고 있을지도 모르잖아."', fx:{aff:16, flag:'응답'},
+      text:`"…녹음이라고 했잖나."
+
+"그래도."
+
+애쉬가 한참을 망설이다 송신 버튼을 눌렀다.
+
+"…루크, 나다."
+
+그 뒤로는 말을 잇지 못했다.
+
+버튼에서 손을 떼고, 애쉬가 무전기를 가이에게 떠넘겼다.
+
+"쓸데없는 짓을 했군."` },
+    { label:'"그냥 냅둬. 어차피 다 들었잖아."', fx:{aff:-22},
+      text:`"하,"
+
+애쉬가 조소하더니 무전기를 주머니에 넣는다.
+
+"…이건 내가 들고 간다."
+
+그날 밤 두 사람은 아무 말도 하지 않았다.` }
+  ]
+},
+
+/* ══════════════ DAY 14 — 발전소 외곽 ══════════════ */
+d14_day: {
+  phase:'낮', place:'발전소 외곽',
+  next:()=> (S.infected && S.inf >= 70) ? 'd14_night_a' : 'd14_night_b',
+  text:`발전소가 보인다. 냉각탑, 그 아래 관리동. 철망은 이미 뜯겨 있다.
+
+그리고 부지 전체에 흩어져 있는 것들의 숫자가 지금까지 본 중 가장 많다.
+
+"…몇십은 넘겠군."
+
+애쉬가 물러설 궁리를 하는 듯하다.`,
+  choices:[
+    { label:'해 질 때까지 기다렸다가 어둠 속에서 진입한다', meta:pct(70), roll:70,
+      win:{ fx:{hp:-15, aff:6}, bite:15,
+        text:`해가 완전히 진 뒤에 움직였다. 어둠이 이쪽만 가려주는 건 아니었지만, 그래도 나았다.` },
+      lose:{ fx:{hp:-35}, bite:45,
+        text:`어둠 속에서 발밑을 못 봤다. 넘어진 소리에 부지 절반이 이쪽으로 돌아섰다.` } },
+
+    { label:'배수로를 따라 관리동 뒤편으로 돈다', meta:pct(60), roll:60,
+      win:{ fx:{hp:-10, aff:4}, bite:10,
+        text:`허리를 굽히고 물을 헤치며 걸었다. 어디서 해본 일이었다.` },
+      lose:{ fx:{hp:-30}, bite:40,
+        text:`배수로 중간이 무너져 있었다. 뚫린 곳으로 이미 몇이 들어와 있었다.` } },
+
+    { label:'냉각탑 위로 올라가 전체를 살핀다', meta:pct(80), roll:80,
+      win:{ fx:()=>{ S.raidMod = 20; return {hp:-5, aff:5}; },
+        text:`위에서 보니 무리의 흐름이 보였다. 관리동 동쪽이 비어 있다.` },
+      lose:{ fx:{hp:-15},
+        text:`반쯤 오르다 사다리가 삭아 부러졌다. 아무것도 못 보고 내려왔다.` } },
+
+    { label:'"여기서 하루 더 기다리자."',
+      fx:()=> S.infected ? {food:-2, aff:-12} : {food:-2, aff:-8},
+      text:()=> `"…하루를 보낸다는 게 무슨 의미인지 알고 하는 소리냐."
+
+` + (S.infected ? `감염 상태로 하루를 허비하는 건 너무 위험한 선택이었다.` : `애쉬는 그날 하루 종일 관리동 쪽을 봤다.`) },
+
+    { label:'"무전기 켜서 불러보자."',
+      lock:()=>!has('응답'), lockText:'무전기를 그렇게 쓸 생각은 아직 안 해봤다',
+      fx:()=>{ S.raidMod = 15; return {aff:12, flag:'신호'}; },
+      text:`잡음뿐이었다. 세 번째 시도에서, 아주 짧게 잡음이 끊겼다가 다시 들려왔다.
+
+누군가 송신 버튼을 눌렀다가 뗀 것 같은 소리.
+
+애쉬의 눈이 커졌다.` }
+  ]
+},
+
+d14_night_a: {
+  phase:'밤', place:'관리동 계단 밑', dayEnd:true, next:'d15_day',
+  text:()=>feverLine()+`
+
+관리동 계단 밑에서 밤을 보낸다.
+
+애쉬가 남은 항생제를 손바닥에 올려놓고 세고 있다.
+
+과연 남아 있기는 한가, 라는 의문이 들 무렵 애쉬가 항생제를 하나 건네준다.
+
+"내일 아침에 먹어라."
+
+"나 주려고 남긴 거야?"
+
+"별로 그런 거 아니다."`,
+  choices:[
+    { label:'순순히 받는다', fx:{aff:8, inf:-10},
+      text:`손바닥에 놓인 걸 그대로 받았다. 애쉬가 손을 거두는 속도가 평소보다 느렸다.` },
+    { label:'"너도 물릴 수 있잖아. 반은 남겨."', fx:{aff:-3, inf:-5},
+      text:`"…반으로 나눠서 무슨 소용이 있지?"` },
+    { label:'"내일 안에도 못 찾으면, 그때 줘."', fx:{aff:18, flag:'약속'},
+      text:`애쉬가 항생제를 쥔 손을 내린다.
+
+"매번 이런 식이군."
+
+"그때는 진짜로 받을게."
+
+"……."
+
+한참 뒤에 나온 대답이었다.
+
+"…그럼 내일 반드시 찾아야겠군."` },
+    { label:'"됐어. 나는 어차피 틀렸어."', fx:{aff:-20},
+      text:`애쉬가 화난 표정을 지으며 항생제 통을 불 속에 던지려다 멈췄다.
+
+"그딴 말 하려고 지금까지 살아남은 건가."` }
+  ]
+},
+
+d14_night_b: {
+  phase:'밤', place:'관리동 앞', dayEnd:true, next:'d15_day',
+  text:`내일이면 들어간다. 애쉬가 무전기를 만지작거리고 있다.
+
+"이제 얼마 안 남았다."`,
+  choices:[
+    { label:'"내일이면 만날 수 있어."', fx:{aff:8},
+      text:`"…그러길 바라야지."` },
+    { label:'"만약 없으면?"', fx:{aff:-8},
+      text:`"…그런 가정은 입 밖으로도 꺼내지 마라."` },
+    { label:'"만나면 무슨 말 할 거야?"', fx:{aff:12},
+      text:`애쉬가 한참을 생각한다.
+
+"왜 혼자 갔냐고 화를 내야겠지."
+
+잠시 뒤 덧붙인다.
+
+"하지만 못 말할 것 같다."` },
+    { label:'"나는 걔한테 미안하다고 할 거야."', fx:{aff:6},
+      text:`"그 녀석이 사과를 바랄 거라 생각하지 않는다만."` }
+  ]
+},
+
+/* ══════════════ DAY 15 — 발전소 ══════════════ */
+d15_day: {
+  phase:'낮', place:'관리동', next:'d15_inner',
+  text:`관리동 문은 안쪽에서 책상으로 막혀 있었다. 사람이 막은 흔적이다.
+
+애쉬가 문을 두드린다. 세 번, 그리고 두 번.
+
+안에서 아무 소리도 나지 않는다.`,
+  choices:[
+    { label:'문을 부수고 들어간다', meta:()=>`성공률 ${chance(65,{mod:S.raidMod})}%`,
+      roll:65, mod:()=>S.raidMod,
+      win:{ fx:{hp:-10}, bite:12, text:`어깨로 세 번 밀자 책상이 밀려났다.` },
+      lose:{ fx:{hp:-30}, bite:40, text:`문이 열리는 순간 안쪽에서 뭔가가 쏟아졌다. 사람은 아니었다.` } },
+
+    { label:'애쉬가 부르게 한다', fx:{aff:6},
+      text:`"…루크."
+
+딱 두 글자였다. 대답은 없었다.` },
+
+    { label:'무전기로 부른다',
+      lock:()=>!has('응답'), lockText:'무전기로 부를 생각은 안 해봤다',
+      fx:{aff:8},
+      text:`무전기를 켜자 안쪽에서도 잡음이 새어 나왔다. 같은 주파수였기에 신호는 통하고 있었다.
+
+다만 그곳에서 나오는 소리는, 사람이 내는 소리가 아니었다.` }
+  ]
+},
+
+d15_inner: {
+  phase:'낮', place:'관리동 안', next:'d15_night',
+  text:`책상 뒤에는 아무도 없었다.
+
+담요, 빈 물병 여섯 개, 다 쓴 건전지. 그리고 벽에 볼펜으로 눌러 쓴 날짜.
+
+~— 사람들 왔길래 같이 나감. 남쪽 창고라고 한다.
+
+~— 무전기의 배터리가 소진됨. 애쉬나 가이를 만날 수 있다면 좋겠는데.
+
+애쉬가 벽에 이마를 댔다. 오래.
+
+"또 늦어버렸군."`,
+  choices:[
+    { label:'벽에 적힌 날짜를 손으로 훑는다', fx:{aff:-4, flag:'벽의낙서'},
+      text:`마지막 줄의 날짜는 어제였다. 하루. 딱 하루 차이였다.`,
+      goLabel:'해가 진다' }
+  ]
+},
+
+d15_night: {
+  phase:'밤', place:'빈 관리동', dayEnd:true, next:'d16_day',
+  text:`루크가 자던 자리에서 밤을 보낸다. 담요에 아직 사람 냄새가 남아 있었다.
+
+애쉬는 벽에 적힌 날짜를 손끝으로 몇 번이나 훑었다.`,
+  choices:[
+    { label:'"하루면 따라잡을 수 있어."', fx:{aff:8},
+      text:`"…며칠 전에도 그렇게 말했다."` },
+    { label:'"루크는 살아 있어. 그게 중요하잖아."', fx:{aff:12},
+      text:`애쉬의 손이 벽에서 떨어진다.
+
+"…그렇지."
+
+그 말을 내뱉기까지 한참이 걸렸다.` },
+    { label:'"왜 자꾸 엇갈리는 걸까."', fx:{aff:-10},
+      text:`"…내가 느려서겠지."
+
+그날 밤 애쉬는 잠들지 못했다.` },
+    { label:'담요를 개어 애쉬 쪽으로 밀어준다', fx:{aff:10},
+      text:`아무 말도 하지 않았다.
+
+새벽에 깼을 때, 애쉬가 그 담요를 덮고 있었다.` }
+  ]
+},
+
+/* ══════════════ DAY 16 — 폭우 ══════════════ */
+d16_day: {
+  phase:'낮', place:'관리동', next:'d16_night',
+  text:`새벽부터 비가 쏟아졌다. 나아가기엔 시야가 확보되지 않아 위험하다.
+
+이런 날 움직이면 소리를 못 듣는다. 그건 죽음과 직결된다.
+
+애쉬가 문틀을 붙잡고 밖을 본다.
+
+"하루가 또 벌어지는군."`,
+  choices:[
+    { label:'하루 쉬며 물자를 정비한다', fx:{hp:20, band:1, aff:2},
+      text:`빗물을 받아 물통을 채웠다. 아무것도 안 한 하루가 너무나도 길었다.` },
+
+    { label:'비를 뚫고 남쪽으로 이동한다', meta:pct(45), roll:45,
+      win:{ fx:{aff:10, hp:-25}, bite:20,
+        text:`빗소리에 발소리가 묻혔다. 운이 좋았다.` },
+      lose:{ fx:{hp:-40}, bite:50,
+        text:`뒤에서 오는 소리를 끝까지 못 들었다.` } },
+
+    { label:'"너 이러다 먼저 쓰러져."', fx:{aff:-12},
+      text:`"지금 내 걱정을 할 때인가."` },
+
+    { label:'애쉬를 억지로 앉히고 무기를 대신 손질한다', fx:{aff:10},
+      text:`손에서 무기를 빼앗았다. 애쉬는 저항하지 않았다.
+
+"뭐 하는 거지?"
+
+"나도 해보고 싶어서."
+
+"재미있는 일이 아닐 텐데?"
+
+"아무튼."
+
+가이가 무기를 손질하기 시작하자, 애쉬는 처음으로 여유로워 보이는 저녁 시간을 보내며 앉아서 비를 봤다.` }
+  ]
+},
+
+d16_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d17_day',
+  text:`관리동 안. 지붕을 때리는 소리가 그치질 않는다.
+
+이 소리를 어디서 들었더라, 생각하다 떠올렸다.`,
+  choices:[
+    { label:'"우리 처음 만난 날도 비 왔었나?"', fx:{aff:8},
+      text:`"…아니. 그날은 맑았다."
+
+그날을 기억하고 있다는 뜻이었다.` },
+    { label:'"벌써 16일이 지났네."', fx:{aff:6},
+      text:`"…그렇게 됐군."
+
+애쉬가 손가락으로 무언가를 세다 말았다.` },
+    { label:'담요를 절반 펼쳐두고 눕는다', fx:{aff:12},
+      text:()=> has('담요')
+        ? `2일째 밤과 똑같이 했다. 아무 말도 없이, 애쉬 쪽으로 절반을 펼쳐두었다.
+
+이번엔 애쉬가 망설이지 않고 먼저 다가왔다.`
+        : `아무 말도 하지 않고 담요를 반만 덮은 채 누웠다. 나머지 절반은 그냥 펼쳐두었다.
+
+한참 뒤, 옆자리에 무게가 실렸다.` } ,
+    { label:'"너 요즘 괜찮아?"', fx:{aff:-8},
+      text:`"…뭐가."
+
+대화는 싱겁게 끝났다.` }
+  ]
+},
+
+/* ══════════════ DAY 17 — 응답 ══════════════ */
+d17_day: {
+  phase:'낮', place:'남쪽 주유소', next:'d17_night',
+  text:`남쪽으로 향하는 길목의 주유소에 도착했다. 편의점 칸이 붙어 있다.
+
+유리는 깨졌고 안쪽은 어둡다. 그런데 진열대에 상품이 아직 남아 있다.
+
+누구도 여기까지는 안 왔다는 뜻이다.`,
+  choices:[
+    { label:'편의점 칸을 턴다', meta:pct(60,{search:true}), search:true, roll:60,
+      win:{ fx:{food:3, anti:1, hp:-10}, bite:10,
+        text:`진열대 아래쪽에 손대지 않은 상자가 남아 있었다. 계산대 뒤 구급함에서 항생제도 하나.` },
+      lose:{ fx:{hp:-25, food:1}, bite:25,
+        text:`창고 문이 안쪽에서 열렸다. 상자 하나만 들고 뛰었다.` } },
+
+    { label:'정비소 쪽만 확인한다', meta:pct(85), roll:85,
+      win:{ fx:()=>{ S.raidMod = 10; return {band:2}; },
+        text:`공구와 기름이 남아 있었다. 무기를 제대로 손질할 수 있는 건 오랜만이다.` },
+      lose:{ fx:{hp:-10}, text:`리프트 아래 뭔가가 끼여 있었다. 소리만 내고 나왔다.` } },
+
+    { label:'나눠서 훑어 본다',
+      lock:()=>S.aff<45, lockText:'애쉬가 떨어지는 걸 받아들이지 않을 것 같다',
+      meta:pct(70,{search:true}), search:true, roll:70,
+      win:{ fx:{food:4, anti:2, aff:8}, bite:12,
+        text:`둘로 나누니 두 배였다. 정확히 십오 분 뒤 문 앞에서 만났다.` },
+      lose:{ fx:{hp:-30, aff:-8}, bite:40,
+        text:`반대편에서 소리가 났을 때, 애쉬는 이미 너무 멀리 있었다.` } }
+  ]
+},
+
+d17_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d18_day',
+  text:`무전기 배터리 표시등은 여전히 빨갛다.
+
+다음 날을 위한 재정비를 하던 도중, 밤중에 무전기에서 잡음이 새어 나왔다.
+
+애쉬가 벌떡 일어난다.
+
+잡음 사이로 뭔가 들린다. 사람 목소리 같기도 하고 아닌 것 같기도 하다.`,
+  choices:[
+    { label:'응답한다', fx:{aff:6},
+      text:`"…루크?"
+
+잡음이 멈췄다. 그리곤 곧바로 다시 시작됐다. 대답은 없었다.` },
+    { label:'애쉬가 응답하게 둔다', fx:{aff:10},
+      text:`"…루크! 듣고 있으면 아무 소리나 내봐라!"
+
+하지만 아무 일도 없었다.
+
+그러다가 무전기가 딱, 하고 두 번 끊겼다.
+
+애쉬는 무전기를 두 손으로 감쌌다.` },
+    { label:'"이거 사람의 소리는 아닌 것 같아."', fx:{aff:-14},
+      text:`"……."
+
+애쉬가 무전기를 껐다.
+
+"…그래. 네 말이 맞겠지."
+
+그날 밤 애쉬는 무전기를 손에서 놓지 않았다.` },
+    { label:'무전기를 끄고 배터리를 아낀다', fx:{aff:-6, flag:'아낌'},
+      text:`"알았다. 내일 쓸 수 있게."
+
+애쉬가 고개를 끄덕였다. 이해는 했지만 납득한 얼굴은 아니었다.` }
+  ]
+},
+
+/* ══════════════ DAY 18 — 다른 사람들 ══════════════ */
+d18_day: {
+  phase:'낮', place:'남쪽 길목', next:'d18_night',
+  text:`남쪽 창고로 가는 길에 사람들을 만났다. 여섯 명 전부 무장을 하고 있었다.
+
+둘을 향해 말보다 총구가 먼저 올라왔다.
+
+"…물린 사람 있어?"`,
+  choices:[
+    { label:'없다고 답한다',
+      branch:()=>{
+        if (!S.infected) return { fx:{flag:'목격'}, text:MEETING_OK, next:'d18_night' };
+        const r = Math.floor(Math.random()*100)+1;
+        return r <= 60
+          ? { fx:{flag:'목격'}, text:MEETING_OK }
+          : { fx:{aff:-10, hp:-20, food:-2}, text:MEETING_BAD };
+      },
+      meta:()=> S.infected ? '들키면 대화가 아니게 된다 — 60%' : '' },
+
+    { label:'감염 사실을 밝힌다', show:()=>S.infected,
+      fx:{aff:-10, hp:-20, food:-2}, text:()=>MEETING_BAD },
+
+    { label:'애쉬가 대응하게 한다', fx:{aff:4, flag:'목격'},
+      text:()=>`"길만 터주면 조용히 지나가겠다."
+
+무리가 수긍하지 않는 듯 보이자 애쉬는 그들의 우두머리에게 무언가 귓속말을 했다.
+
+그들은 길을 터주었다.
+
+`+MEETING_OK },
+
+    { label:'먼저 무기를 내려놓는다', fx:{aff:8, food:-3, anti:-1, flag:'목격'},
+      text:()=>`애쉬가 이를 갈면서도 가이를 따라 했다.
+
+`+MEETING_OK }
+  ]
+},
+
+d18_night: {
+  phase:'밤', place:'', dayEnd:true, next:'d19_day',
+  text:()=>`불 앞에서 애쉬가 먼저 입을 열었다.
+
+` + (has('목격')
+  ? `"…아까 그 사람들 말이다."
+
+"그 녀석이 나랑 똑같이 생겼다고 했지."`
+  : `"…아까 그자들 말이다."
+
+"나를 보는 눈이 이상했지. 처음 보는 얼굴이 아니라는 눈이었다."`) + `
+
+장작이 소리를 내며 타들어갔다.
+
+"…처음 네가 나를 붙잡았을 때부터 알고 있었다."
+
+"네가 날 구하려고 했던 게 아니라는 것쯤은."
+
+"여전히 만나는 사람들마다 나와 그 녀석을 겹쳐 보는군."`,
+  choices:[
+    { label:'"그런 거 신경 쓰지 마."', fx:{aff:-8},
+      text:`"…신경 쓰지 말라고?"
+
+애쉬가 웃었다. 하지만 눈은 웃고 있지 않았다.` },
+
+    { label:'"너 지금 질투하는 거야?"', fx:{aff:-20},
+      text:`애쉬가 일어섰다.
+
+"그런 식으로밖에 생각하지 못하는 인간이었군."
+
+그날 밤 애쉬는 다른 곳으로 가버렸다.` },
+
+    { label:'"루크만 찾으면 우린 헤어지는 건가?"', fx:{aff:-10},
+      text:`"네가 원한다면."
+
+최악의 대답을 유도한 셈이 됐다.` },
+
+    { label:'"딱히 루크 때문에 너와 있는 건 아닌데."',
+      lock:()=>S.aff<65, lockText:'지금 이 말은 변명처럼 들릴 것 같다',
+      warm:true, fx:{aff:14},
+      text:`"그럼 무엇 때문에 함께 하는 거지?"
+
+"이유가 필요해?"
+
+애쉬가 한참 가이를 봤다.` },
+
+    { label:'"그 사람들이 뭐라고 하든, 나는 딱히 헷갈린 적 없어."',
+      lock:()=>!has('구별'), lockText:'이 말을 믿게 하려면, 그전에 증명한 적이 있어야 한다',
+      warm:true, fx:{aff:25, flag:'대답'},
+      text:`"…그러기엔 그날 루크와 날 헷갈리지 않았나."
+
+"그땐 처음 만난 거라 어쩔 수 없었고."
+
+"어쨌든 루크는 루크고 넌 너야."
+
+"항상 쓸데없는 소릴 하는군."
+
+목소리가 젖어 있었다.` },
+
+    { label:'아무 말 없이 애쉬 옆에 눕는다',
+      branch:()=> S.aff >= 20
+        ? { fx:{aff:16}, text:`대답 대신 어깨가 닿을 만큼 가까이 옆에 누웠다.
+
+애쉬는 밀어내지 않았다.` }
+        : { fx:{aff:-3}, text:`대답 대신 옆에 누웠다.
+
+애쉬가 자리에서 일어나 반대편으로 갔다.` } }
+  ]
+},
+
+/* ══════════════ DAY 19 — 마지막 배터리 ══════════════ */
+d19_day: {
+  phase:'낮', place:'남쪽 창고', next:'d19_night',
+  text:`창고는 이미 뚫려 있었다. 문이 안쪽에서 부서진 흔적이 보인다.
+
+안에 사람은 없다. 대신 바닥에 눌러 그린 화살표가 남쪽을 가리키고 있었다.
+
+그리고 그 옆에 짧은 글.
+
+~— 배터리 없음. 버튼만 누름. 들리면 좋겠다.
+
+애쉬가 무전기를 꺼내 본다. 어젯밤의 그 잡음이 다시 들리는 것 같았다.`,
+  choices:[
+    { label:'즉시 남쪽으로 추적한다', meta:pct(65), roll:65,
+      win:{ fx:{aff:8, hp:-20}, bite:15,
+        text:`둘은 남쪽으로 향했다. 루크를 찾아야 한다.` },
+      lose:{ fx:{hp:-35}, bite:40,
+        text:`서두른 만큼 놓친 것도 많았다. 골목 하나를 잘못 들었다.` } },
+
+    { label:'창고에서 물자를 챙기고 출발한다', meta:pct(80), roll:80,
+      win:{ fx:{food:2, band:1, hp:-10}, bite:10,
+        text:`선반 아래에 남은 것들을 쓸어 담았다. 오래 걸리지는 않았다.` },
+      lose:{ fx:{food:1, band:1, hp:-30}, bite:20,
+        text:`안쪽 적재칸에 아직 남아 있는 게 있었다. 물자 말고.` } },
+
+    { label:'무전기를 켜고 계속 신호를 보내며 이동한다',
+      fx:()=>{ S.raidMod = 20; return {aff:10, flag:'신호'}; },
+      text:`십 분마다 한 번씩 송신 버튼을 눌렀다.
+
+세 번째 시간에, 아주 짧게 잡음이 두 번 끊겼다.
+
+가까워지고 있었다.` },
+
+    { label:'"단서 없이 섣불리 가면 위험해. 우선 쉬었다 가자."', fx:{aff:-25},
+      text:`애쉬가 걸음을 멈춘다.
+
+"뭐라고?"
+
+그날 애쉬는 혼자 앞서 걸었다.` }
+  ]
+},
+
+d19_night: {
+  phase:'밤', place:'남쪽 언덕', dayEnd:true, next:'d20_day1',
+  text:`남쪽 언덕 아래로 폐차장과 낡은 창고 몇 동이 보인다. 저 안 어딘가에 있을지도 모른다.
+
+무전기 표시등이 꺼졌다. 배터리가 다 됐다.
+
+애쉬가 그걸 한참 보다 주머니에 넣는다.`,
+  choices:[
+    { label:'"내일이면 만날 수 있을 거야."', fx:{aff:8},
+      text:`"섣불리 희망을 가지면 실망이 크다."
+
+그렇게 말하는 애쉬의 얼굴에 희망의 빛이 감돈다.` },
+    { label:'"만약 못 만나면?"', fx:{aff:-10},
+      text:`"…그런 가정은 하지 마라."
+
+애쉬가 인상을 찌푸린다.` },
+    { label:'"만나면 무슨 말 할 거야?"', fx:{aff:12},
+      text:`"…왜 혼자 갔냐고 화를 내야겠지."
+
+잠시 뒤 덧붙인다.
+
+"…근데 아마 못 할 거다."` },
+    { label:'"너 나한테 할 말 있다고 했잖아."',
+      lock:()=>!has('나중에'), lockText:'그런 약속을 받은 적이 없다',
+      warm:true, fx:{aff:18, flag:'미뤄둔말'},
+      text:`"기억하고 있었나."
+
+"당연하지."
+
+애쉬가 언덕 아래를 본다. 한참을 그러고 있었다.
+
+"내일. 그 녀석을 보고 나면 하겠다."` },
+    { label:'조용히 불침번을 선다', fx:{aff:4, hp:10},
+      text:`애쉬가 잠든 걸 확인하고 나서야 자리에 앉았다. 언덕 아래에는 불빛 하나 없었다.` }
+  ]
+},
+
+/* ══════════════ DAY 20 — 폐차장 ══════════════ */
+d20_day1: {
+  phase:'낮', place:'폐차장',
+  text:`차 수백 대가 쌓인 폐차장. 그 사이사이에서 좀비들이 움직이고 있다.
+
+그리고 정중앙 컨테이너 위에 사람 하나가 웅크리고 앉아 있었다.
+
+손에 뭔가를 쥐고 계속 누르고 있다. 무전기다.
+
+애쉬가 놀란 얼굴로 앞을 바라본다.
+
+"…루크."
+
+컨테이너까지 가는 길은 두 갈래다.
+
+서쪽은 차가 낮게 깔려 있어 지붕을 밟고 갈 수 있다. 대신 좀비들의 타깃이 되기 쉽다.
+
+동쪽은 폐차 더미 사이 좁은 통로들이 있다. 몸은 숨길 수 있지만 루크에게 빠르게 다가가기 어렵다.`,
+  choices:[
+    { label:'서쪽 지붕으로 혼자 접근한다', meta:pct(60), roll:60,
+      win:{ fx:{hp:-10}, bite:15, next:'d20_close',
+        text:`차 지붕을 밟고 달렸다. 아래에서 손들이 계속 올라왔지만 멈추지 않았다.` },
+      lose:{ fx:{hp:-14}, bite:35, next:'d20_lost',
+        text:`지붕 하나가 내려앉았다. 컨테이너까지 절반도 못 갔다.` } },
+
+    { label:'동쪽 통로를 애쉬와 함께 뚫는다',
+      lock:()=>S.aff<45, lockText:'둘이 붙어서 뚫어야 하는 길이다. 지금은 그럴 수 없을 것 같다',
+      meta:pct(75), roll:75,
+      win:{ fx:{aff:8, hp:-10}, bite:10, next:'d20_close',
+        text:`애쉬와 가이는 고지의 앞에서 그동안의 합을 다시 맞췄다.` },
+      lose:{ fx:{hp:-16}, bite:25, next:'d20_lost',
+        text:`통로 중간이 막혀 있었다. 되돌아 나오는 데 시간을 다 썼다.` } },
+
+    { label:'애쉬가 유인하고 가이가 컨테이너로 간다', meta:pct(70), roll:70,
+      win:{ fx:{aff:12, hp:-10}, bite:10, next:'d20_close',
+        text:`"내가 이목을 끌 테니 네가 데려와라."
+
+애쉬가 위험한 역할을 자기 몫으로 가져갔다.` },
+      lose:{ fx:{hp:-14, aff:-5}, bite:30, next:'d20_lost',
+        text:`유인이 절반만 먹혔다. 나머지 절반이 가이 쪽으로 왔다.` } },
+
+    { label:'소리를 질러 부른다', meta:pct(45), roll:45,
+      win:{ fx:{hp:-14, aff:-6}, bite:30, next:'d20_close',
+        text:`"…미쳤나!"
+
+애쉬가 총을 들었다. 이제 조용히 갈 방법은 없다.
+
+그래도 길은 열렸다.` },
+      lose:{ fx:{hp:-16, aff:-6}, bite:45, next:'d20_lost',
+        text:`"…미쳤나!"
+
+애쉬가 총을 들었다. 부지 전체가 이쪽으로 돌아섰다.` } },
+
+    { label:'무전기로 먼저 신호를 보낸다',
+      lock:()=>!(has('신호')||has('아낌')), lockText:'배터리가 남아 있지 않다',
+      fx:()=>{ S.raidMod = 20; return {aff:10, flag:'교신'}; },
+      next:'d20_close',
+      text:`컨테이너 위의 실루엣이 벌떡 일어났다.
+
+무전기를 두 손으로 감싸 쥐고, 이쪽을 향해 미친 듯이 손을 흔든다.
+
+손짓 몇 번으로 서로에 대한 반가움과 걱정을 확인했다.` }
+  ]
+},
+
+d20_close: {
+  phase:'낮', place:'컨테이너 앞',
+  text:`컨테이너까지 스무 걸음. 그런데 소리를 들은 무리가 방향을 틀었다.
+
+사방에서 몰려온다.
+
+루크가 사다리 위에서 이쪽을 본다. 내려오려다 멈춘다. 위험해서 움직일 수 없었다.
+
+애쉬가 뒤에서 소리친다.
+
+"…가이!"`,
+  choices:[
+    { label:'애쉬에게 뒤를 맡기고 컨테이너로 뛴다',
+      lock:()=>S.aff<65, lockText:'뒤를 맡기려면, 애쉬가 거기 있을 거라고 믿어야 한다',
+      warm:true, fx:{aff:20, flag:['셋','재회']}, next:'d20_reunion',
+      text:`돌아보지 않았다. 돌아볼 필요가 없었다.
+
+뒤에서 나는 소리만으로 애쉬가 어떤 행동을 취하고 있는지 느낄 수 있었다.` },
+
+    { label:'애쉬와 함께 길을 뚫는다', meta:pct(70), roll:70,
+      win:{ fx:{aff:14, hp:-14, flag:'재회'}, next:'d20_reunion',
+        text:`죽어도 함께 죽고, 살아도 함께 산다.` },
+      lose:{ fx:{hp:-22}, bite:35, next:'d20_fail',
+        text:`둘 다 밀렸다. 뚫어야 할 곳이 너무 넓었다.` } },
+
+    { label:'혼자 정면으로 돌파한다', meta:pct(55), roll:55,
+      win:{ fx:{hp:-14, flag:'재회'}, bite:20, next:'d20_reunion',
+        text:`애쉬를 두고 뛰었다. 뒤를 볼 여유가 없었다.` },
+      lose:{ fx:{hp:-16, aff:-10}, bite:40, next:'d20_fail',
+        text:`"…왜 혼자 가나!"
+
+애쉬의 목소리가 뒤에서 멀어졌다.` } },
+
+    { label:'"애쉬, 네가 먼저 가!"', meta:pct(40), roll:40,
+      win:{ fx:{aff:-18, flag:['밀어냄','재회']}, next:'d20_reunion',
+        text:`"!!"
+
+애쉬가 먼저 달렸다. 마지막까지 가이 쪽을 한 번도 보지 않았다.` },
+      lose:{ fx:{aff:-18}, bite:25, next:'d20_fail',
+        text:`"!!"
+
+애쉬가 달렸지만 늦었다. 그리고 그 사이에 가이가 고립됐다.` } },
+
+    { label:'무전기로 루크에게 내려오라고 신호한다',
+      lock:()=>!has('교신'), lockText:'루크와 신호를 주고받은 적이 없다',
+      meta:pct(85), roll:85,
+      win:{ fx:{aff:12, flag:'재회'}, next:'d20_reunion',
+        text:`무전기 너머로 잡음이 두 번 끊겼다. 알아들었다는 뜻이다.
+
+루크가 위험을 무릅쓰고 반대편 사다리로 내려가기 시작했다.` },
+      lose:{ fx:{hp:-16}, bite:20, next:'d20_fail',
+        text:`신호가 닿지 않았다. 루크는 반대쪽으로 내려가 버렸다.` } }
+  ]
+},
+
+d20_lost: {
+  phase:'낮', place:'폐차 더미',
+  text:`루크가 폐차 더미 뒤로 물러나자, 모습이 보이지 않았다.
+
+다만 소리가 들렸다. 철판을 밟는 소리, 그리고 사다리가 흔들리는 소리.
+
+애쉬가 가이의 팔을 붙잡는다. 긴장한 탓에 손에 힘이 과하게 들어가 있었다.
+
+"…한 번 더 간다."`,
+  choices:[
+    { label:'다시 시도한다', meta:()=>`성공률 ${chance(40,{mod:S.inf>=60?-10:0})}%`,
+      roll:40, mod:()=>S.inf>=60?-10:0,
+      win:{ fx:{hp:-22, flag:'재회'}, bite:30, next:'d20_reunion',
+        text:`두 번째는 길이 보였다. 첫 번째에서 배운 게 있었다.` },
+      lose:{ fx:{hp:-28}, bite:45, next:'d20_fail',
+        text:`두 번째도 밀렸다. 이번엔 더 멀리 밀렸다.` } },
+
+    { label:'"안 돼. 너까지 죽어."', fx:{aff:-12}, next:'d20_fail',
+      text:`애쉬가 팔을 뿌리쳤다. 그리고 결국, 뿌리친 손으로 다시 가이를 잡았다.` },
+
+    { label:'애쉬를 붙잡고 물러난다', fx:{aff:8}, next:'d20_fail',
+      text:`"…놔라."
+
+"못 놔."
+
+가이는 더 이상 나아가지 않고 애쉬의 팔을 붙잡았다.
+
+애쉬가 저항을 멈췄다.` },
+
+    { label:'"남쪽 출구. 루크는 저쪽으로 내려갔어."',
+      lock:()=>!(has('교신')||has('신호')||has('아낌')),
+      lockText:'루크가 어디로 내려갔는지 알 방법이 없다',
+      meta:pct(60), roll:60,
+      win:{ fx:{aff:10, flag:'재회'}, next:'d20_reunion',
+        text:`"루크…!"
+
+가이의 말에 애쉬는 남쪽 출구로 향한다.` },
+      lose:{ fx:{aff:6}, next:'d20_fail',
+        text:`남쪽 출구에 도착했을 땐 이미 아무도 없었다.` } }
+  ]
+},
+
+d20_reunion: {
+  phase:'낮', place:'컨테이너', next:'ending',
+  text:`컨테이너 사다리를 반쯤 올랐을 때, 위에서 누군가가 미끄러지듯 내려왔다.
+
+루크였다.
+
+루크는 가이를 보자마자 울음이 터졌다.
+
+"가이!!"
+
+그리고 그 너머, 루크를 향해 다가오는 애쉬를 봤다.
+
+루크는 눈을 크게 뜨며 놀란다.
+
+"…애쉬?"
+
+애쉬가 아무 말도 하지 못하고 서 있었다. 드디어 만날 수 있었다.`,
+  choices:[
+    { label:'루크를 애쉬 쪽으로 밀어준다', fx:{aff:12},
+      text:`루크가 달려가 애쉬를 안았다. 애쉬는 팔을 어디에 둬야 할지 몰라 한참 들고 있었다.
+
+결국 아주 천천히, 동생의 등에 손을 얹었다.`, goLabel:'…' },
+    { label:'"왜 혼자 갔어."라고 먼저 묻는다', fx:{aff:-8},
+      text:`애쉬가 하려던 말이었다. 빼앗긴 셈이 되어버렸다.`, goLabel:'…' },
+    { label:'아무 말도 하지 않고 물러선다', fx:{aff:16},
+      text:`두 걸음 뒤로 물러났다.
+
+그 자리는 가이의 자리가 아니었다.
+
+애쉬가 그걸 알아챘다. 루크를 안은 채로, 가이 쪽을 봤다.`, goLabel:'…' },
+    { label:'"미안해. 그날 널 놓쳐서."', fx:{aff:4, flag:'사과'},
+      text:`"왜 가이가 사과해?"
+
+루크가 눈물을 흘리며 웃어 보였다.`, goLabel:'…' }
+  ]
+},
+
+d20_fail: {
+  phase:'낮', place:'남쪽 출구', next:'ending',
+  text:`둘은 폐차장 남쪽 출구까지 밀려 나왔다.
+
+뒤를 돌아봤을 때, 컨테이너 위에는 아무도 없었다.
+
+애쉬가 무전기를 꺼내 켠다. 배터리는 이미 없었다.
+
+그런데도 송신 버튼이 눌린 채로 굳어 있었다.
+
+끝까지 누르고 있었다는 뜻이다.
+
+그러니까, 내려갔다는 뜻이기도 했다.
+
+"…살아 있다."
+
+애쉬가 그렇게 말했다. 근거는 없었다.`,
+  choices:[
+    { label:'"응. 살아 있어."', fx:{aff:10},
+      text:`"그러면 다시 찾으면 그만이다."
+
+실패해도 다시 도전하면 된다.`, goLabel:'…' },
+    { label:'"…내 탓이야."', fx:{aff:-10},
+      text:`"…또 그 소리군."
+
+이제 이런 이야기는 지긋지긋하다.`, goLabel:'…' },
+    { label:'애쉬 옆에 앉아 아무 말도 하지 않는다', fx:{aff:8},
+      text:`"어서 빠져나가서 재정비를 하고, 다시 찾아야만 한다."
+
+애쉬는 이를 악물고 가이보다 먼저 앞서간다.`, goLabel:'…' }
+  ]
+},
+
+/* ══════════════ 엔딩 ══════════════ */
+ending:   { ending:'clear' },
+dead_hp:  { ending:'hp' },
+dead_inf: { ending:'inf' }
+
+};
+
+/* ---------- 긴 서술 조각 ---------- */
+const RADIO = `관리소 책상 위에 무전기가 놓여 있다. 전원이 켜진 채였다.
+
+잡음 사이로 아주 희미하게, 같은 문장이 반복되고 있었다.
+
+녹음이다. 열두 번쯤 돌아간 것 같았다.
+
+~— 여기 중계탑. 누구든 들리면…
+
+~— 난 발전소로 갈게. 거기서 기다릴게.
+
+잡음. 그리고 다시 처음부터.
+
+애쉬가 무전기를 집어 든다.`;
+
+const MEETING_OK = `"남쪽 창고? 거기 사람들이 있었어. 너랑 똑같이 생긴 애를 데리고 있었는데."
+
+"…어젠가 그저께쯤? 근데 못 버티고 더 남쪽으로 내려갔을걸."
+
+애쉬가 앞으로 나선다.
+
+"남쪽 어디로 갔지?"
+
+"그것까지는 모르겠지만 마을을 찾고 싶어 하는 눈치였어."
+
+여섯 명이 동시에 애쉬를 봤다. 애쉬는 아무 말도 하지 않았다.`;
+
+const MEETING_BAD = `그들은 소매를 걷으라고 했다.
+
+애쉬가 막아섰고, 그때부터는 대화가 아닌 육탄전의 시작이었다.
+
+간신히 빠져나왔지만 배낭이 가벼워져 있었다.`;
+
+function itemNight(){
+  if (has('일기장')) return 'd9_diary';
+  if (has('가방'))   return 'd9_bag';
+  if (has('겉옷'))   return 'd9_coat';
+  return 'd9_none';
+}
+function route10(){
+  return (has('일기장')||has('가방')||has('겉옷')) ? 'd10_fence' : 'd10_lost';
+}
+
+/* ---------- 기록 ---------- */
+const FLAG_NOTE = {
+  '고집':'애쉬 몫을 남겨뒀던 밤','애쉬_부상':'약국에서 애쉬가 대신 맞았다',
+  '애쉬_일기':'애쉬에게 노트를 쥐여줬다','물림':'물렸다',
+  '약속':'그다음은 애쉬가 정한다','숨김':'감염을 숨겼다',
+  '최후':'그날 밤, 애쉬는 아무것도 하지 못했다',
+  '첫고백':'그날 손을 놓쳤다고 말했다','이해':'루크에 대해 이야기했다',
+  '위탁':'항생제를 애쉬에게 맡겼다','빚':'육교 아래의 남자를 도왔다',
+  '도둑':'육교 아래에서 털렸다','구별':'너는 루크가 아니라고 말했다',
+  '나눔':'항생제를 반으로 나눴다','손':'이번에는 놓지 않았다',
+  '나중에':'애쉬가 나중에 할 말이 있다고 했다',
+  '증언':'루크가 애쉬를 찾고 있었다','돌아올곳':'돌아올 곳을 정했다',
+  '고집2':'치료를 거절했다','응답':'애쉬가 무전기에 대답했다',
+  '신호':'무전기로 계속 신호를 보냈다','아낌':'배터리를 아꼈다',
+  '벽의낙서':'하루 차이로 엇갈렸다','목격':'루크를 본 사람을 만났다',
+  '대답':'헷갈린 적 없다고 말했다','미뤄둔말':'애쉬가 미뤄둔 말이 있다',
+  '교신':'루크와 신호가 닿았다','셋':'뒤를 맡기고 뛰었다',
+  '밀어냄':'애쉬를 먼저 보냈다','사과':'끝내 사과했다','재회':'루크를 만났다',
+  '포기':'정수장에 남았다'
+};
+const CLUE = { '일기장':'루크의 일기', '가방':'루크의 가방', '겉옷':'루크의 겉옷' };
+const clueName = () => { for (const k in CLUE) if (has(k)) return CLUE[k]; return null; };
+
+/* ---------- 엔딩 도감 ---------- */
+const GALLERY = [
+  ['A','우리의 이름','루크를 만나고, 애쉬와 이어진다'],
+  ['B','세 사람','루크를 만나고, 셋이 함께 산다'],
+  ['C','둘만 남은 길','루크는 놓쳤지만 애쉬와 이어진다'],
+  ['D','각자의 자리','루크를 만났지만 애쉬와 멀어진다'],
+  ['E','끝나지 않은 길','아무것도 얻지 못한 채 계속 걷는다'],
+  ['F','씁쓸한 이별','정수장에 남는다'],
+  ['G','형제','루크를 만나고, 애쉬가 떠난다'],
+  ['H','놓친 손','모든 손을 놓친다'],
+  ['Z1','전이 · 불신','감염 끝에 홀로 남는다'],
+  ['Z2','전이 · 경계','감염 끝에 자비를 받는다'],
+  ['Z3','전이 · 무덤덤','감염 끝에 침묵 속에서 끝난다'],
+  ['Z4','전이 · 흔들림','감염 끝에 애쉬가 방아쇠를 당긴다'],
+  ['Z5','전이 · 애정','감염 끝에 애쉬가 끝내 당기지 못한다'],
+  ['X','소진','체력이 다한다']
+];
+const GNAME = Object.fromEntries(GALLERY.map(g=>[g[0],g[1]]));
+
+function endingCode(){
+  if (has('포기')) return 'F';
+  const deep = has('대답') || has('미뤄둔말');
+  if (has('재회')){
+    if (S.aff < 0) return 'G';
+    if (S.aff >= 65 && deep) return 'A';
+    if (S.aff >= 45) return 'B';
+    return 'D';
+  }
+  if (S.aff < 0) return 'H';
+  if (S.aff >= 65 && deep) return 'C';
+  return 'E';
+}
+function zombieCode(){
+  const m = mood(S.aff);
+  if (m === '불신') return 'Z1';
+  if (m === '경계') return 'Z2';
+  if (m === '서먹함' || m === '무덤덤') return 'Z3';
+  if (m === '신경 쓰임' || m === '흔들림') return 'Z4';
+  return 'Z5';
+}
+
+/* ---------- 엔딩 본문 ---------- */
+const P = '\n\n';
+function slot(cond, txt){ return cond ? txt + P : ''; }
+
+const ENDING_TEXT = {
+A: ()=>[
+`정수장까지 5일이 걸렸다.
+
+루크는 삼 일째부터 걸을 수 있게 됐고, 사 일째부터는 쉬지 않고 떠들었다.
+
+애쉬는 그 뒤를 걸으며 몇 번이나 그만하라고 했지만 소용없었다.`
++ P + slot(has('셋'),
+`"그때 가이가 뒤도 안 돌아보고 뛰었거든요. 형이 뒤에 있으니까."
+루크는 그날 이야기를 5일 동안 네 번쯤 반복했다.`)
++ slot(has('교신'),
+`루크는 배터리가 다 된 무전기를 아직 주머니에 넣고 다녔다. 버리라고 해도 듣지 않았다.`)
++
+`급수탑 문이 열렸을 때, 관리인 여자가 명단을 펴고 물었다.
+
+"이름."
+
+"루크."
+
+"가이."
+
+그리고 세 번째 차례에서, 애쉬가 잠깐 말이 없었다.
+
+20일 동안 누구도 그 이름을 부른 적이 없었다.
+
+"…애쉬다."`,
+
+`그날 밤, 천막 밖에서 애쉬가 가이를 불러냈다.
+
+19일째 밤에 미뤄둔 말이 있었다.
+
+"…들어가면 하겠다고 했지."
+
+"응."
+
+애쉬가 오래 뜸을 들였다. 20일 동안 이 사람이 이렇게까지 말을 못 하는 걸 본 적이 없었다.
+
+"…처음엔, 네가 나를 루크의 대신이라고 여긴다 생각했다."
+
+"지금은?"
+
+"…."
+
+애쉬가 고개를 들었다.
+
+"지금은 아니라는 걸 안 것 같군."`,
+
+`21일 째 아침.
+
+루크는 피곤해서 늦잠을 잤고, 두 사람은 급수탑 위에서 해가 뜨는 걸 함께 지켜봤다.
+
+어느 쪽이 먼저 손을 잡았는지는 아무도 알 수 없다.
+
+다만 이번에는 손을 오랫동안 놓지 않았다.`],
+
+B: ()=>[
+`정수장까지 5일이 걸렸다.
+
+루크는 생각보다 빨리 회복했다. 애쉬는 그게 못마땅한 것처럼 굴었지만, 밤마다 동생의 담요를 다시 덮어주었다.`
++ P + slot(has('이해'),
+`루크는 애쉬가 없을 때 그에 대한 이야기를 자주 했다.
+"애쉬는 원래 저렇지 않았는데 요즘 왜 저래?"
+가이는 대답할 말이 없어서 웃기만 했다.`)
++ slot(has('빚'),
+`정수장 문 앞에서 낯익은 얼굴이 손을 흔들었다. 육교 아래에서 만났던 그 남자였다.
+"셋이서 다니는걸 보니 찾던 사람과 합류한 모양이군요, 잘됐네요."`)
++
+`문이 열렸다. 20일 만에 겨우 마을다운 곳으로 들어갔다.
+
+루크가 제일 먼저 들어가고, 가이가 다음, 애쉬가 마지막에서 따라갔다.
+
+애쉬는 늘 마지막을 자처했다.`,
+
+`며칠 뒤, 급수탑 아래에서 애쉬를 만났다.
+
+무기를 손질하고 있었다. 여기서는 당분간 쓸 일이 없는데도 매일 손질한다.
+
+"이제 어쩔 셈이냐."
+
+"글쎄. 너는?"
+
+"나는 그 녀석이 여기 있는 동안은 함께 있겠지."
+
+그 이상은 말하지 않았다. 가이도 더 묻지 않았다.
+
+20일 동안 이 녀석에게 배운 게 있다면, 서로에 대해 캐묻지 않는 것이었다.`,
+
+`그날 밤, 셋이 함께 불 앞에 앉았다.
+
+루크가 떠들고, 가이가 웃으면, 애쉬가 그만하라고 면박을 주곤 했다.
+
+그렇게 특별한 밤은 아니었다.
+
+다만 20일 전에는 이런 밤이 있을 거라고 생각하지 못했다.
+
+그 사실만으로도 충분히 행복했다.`],
+
+C: ()=>[
+`그날 밤, 폐차장 남쪽 출구에서 불을 피웠다.
+
+애쉬가 무전기를 손에 쥔 채로 오래 앉아 있었다. 배터리는 이미 없었다.
+
+그런데도 송신 버튼이 눌린 채로 굳어 있었다. 끝까지 누르고 있었다는 뜻이다.`
++ P + slot(has('대답'),
+`"…이전에 네가 한 말 말이다."
+"응."
+"그게 아니었다면, 오늘 혼자서 이대로 남쪽으로 갔을지도 모르지."`),
+
+`"내일부터 다시 남쪽으로 간다."
+
+"응."
+
+"…혼자 갈 생각은 없다."
+
+"나도 널 혼자 보낼 생각은 없어."`,
+
+`다음 날 아침, 두 사람은 다시 남쪽으로 걸었다.
+
+루크는 아직 찾지 못했다.
+
+하지만 19일 째 밤에 미뤄둔 애쉬의 말은 아침에 드디어 들을 수 있었다.
+
+그 말이 무엇이었는지는 두 사람만이 알고 있다.`],
+
+D: ()=>[
+`루크는 하루가 다르게 밝아졌다. 형을 찾았으니 당연했다.
+
+애쉬는 늘 그 옆에 있었다.
+
+하지만 가이는 둘에게서 조금 떨어진 곳에 있었다.`
++ P + slot(has('사과'),
+`"가이랑 왜 같이 안 있어?"
+루크가 그렇게 물었을 때, 애쉬는 아무 말도 하지 않았다.`)
++
+`대피소의 문이 열리고, 그 명단에 세 이름이 더 올라갔다.
+
+그날 밤 애쉬는 동생의 옆에서 잤다.`,
+
+`며칠 뒤, 급수탑 아래에서 애쉬와 마주쳤다.
+
+"고맙다."
+
+그러곤 등을 돌려버렸다.
+
+그게 전부였다.
+
+함께한 날들 중에서 가장 예의 바르고도 거리감 있는 말이었다.`,
+
+`정수장은 넓었고, 많은 인원이 지내는 곳이라 마주칠 일이 별로 없었다.
+
+루크는 자주 찾아왔지만 애쉬는 좀처럼 오지 않았다.
+
+함께한 그 시간들 동안 정작 물어봐야 할 것을 한 번도 묻지 못했다.
+
+그러나 이제는 물을 이유도 없어졌다.`],
+
+E: ()=>[
+`컨테이너 위에는 아무도 없었다.
+
+무리에 밀려 물러났을 때, 위쪽에서 사람 그림자가 남쪽으로 내려가는 걸 봤다.
+
+부를 수 없었다. 부르면 소리때문에 다 죽을 수밖에 없었기 때문이다.
+
+그림자를 놓친 그 날, 애쉬는 하루 종일 말을 하지 않았다.`,
+
+`다음 날 아침, 애쉬가 짐을 꾸렸다.
+
+"…남쪽으로 간다."
+
+"같이 갈게."
+
+"마음대로 해라."
+
+그게 전부였다. 딱히 반대하지도 않았고, 함께해줘서 고맙다는 말도 없었다.`,
+
+`두 사람은 계속 걸었다.
+
+그렇게 며칠이 더 지났다.
+
+루크의 흔적은 더 이상 보이지 않았다.
+
+밤마다 함께 불 앞에 앉았지만, 서로에게 말을 거는 일은 없었다.
+
+물어야 할 걸 물을 시간은 그동안 충분히 있었다.
+
+다만 두 사람은 더 이상 이야기하려 하지 않았다.`],
+
+F: ()=>[
+`"그래, 알았다. 네 뜻이 그렇다면."
+
+"넌 감염이 됐으니 남아서 치료를 받는 것도 무리는 아니지."
+
+"나 혼자서라도 루크를 찾으러 가겠다."
+
+가이는 치료가 끝나면 함께 가겠다고 했다.
+
+하지만 애쉬는 시간이 없다며 거절했다.`,
+
+`결국 애쉬는 홀로 여정을 떠났다.
+
+치료는 4일이 걸렸다. 열이 내리고 팔의 상처가 아물었다.
+
+그리고 애쉬의 행방은 알 수 없었다.
+
+앞으로도 영원히 알 수 없을 것이다.`],
+
+G: ()=>[
+`정수장까지 5일이 걸렸다.
+
+그 5일 동안 애쉬는 가이에게 단 세 번만 말을 걸었다.
+
+전부 길에 관한 것이었다.`
++ P + slot(has('숨김')||has('도둑'),
+`한 번은 이렇게 말했다.
+"이제 끝이군."
+무슨 소리를 하는건지 묻지 않았다. 물을 필요가 없었고, 애쉬가 답을 바라고 한 말이 아니었기 때문이다.`)
++
+`문 앞에서 애쉬가 걸음을 멈췄다.
+
+"여기까지다."
+
+"무슨 소리야."
+
+"그 녀석을 데려왔으니 네가 할 일은 끝났지."
+
+루크가 두 사람을 번갈아 봤다. 무슨 일인지 모르는 얼굴이었다.`,
+
+`"애쉬, 가이도 같이…"
+
+"루크."
+
+애쉬가 동생의 어깨를 잡고 문 안으로 밀어 넣었다.
+
+그리고 돌아섰다.
+
+"그동안 신세 많이 졌다."
+
+그게 마지막 말이었다.`,
+
+`문이 닫히자, 안쪽에서 루크가 이름을 부르는 소리가 들렸다. 두 번, 세 번.
+
+그리고 그 소리가 멀어졌다.
+
+더 이상 만날 일은 없을 것이다.`],
+
+H: ()=>[
+`컨테이너 위에는 아무도 없었다.
+
+무리에 밀려 물러났을 때, 애쉬는 가이보다 세 걸음 정도 앞서 가고 있었다.
+
+뒤를 돌아보지도 않았다.`,
+
+`그날 밤, 불도 피우지 않았다.
+
+애쉬가 지도를 접어 주머니에 넣는 걸 봤다.
+
+"나는 남쪽으로 간다."
+
+"나도 함께…"
+
+"아니, 나 혼자 간다."
+
+그 말에 대꾸할 말은 딱히 없었다.`,
+
+`아침에 눈을 떴을 때 옆자리는 비어 있었다.
+
+20일 전, 인파 속에서 놓친 손이 하나 있었다.
+
+그리고 20일 뒤, 또 하나를 놓쳤다.
+
+결국 모든 손을 놓치고 만 것이다.`]
+};
+
+function zombieText(){
+  const c = zombieCode();
+  if (c==='Z1') return `허공을 향해 뻗은 손끝이 썩어 문드러지고 있다.
+
+애쉬는 돌아보지 않았다. 발자국 소리는 망설임 없이 멀어졌다.
+
+애초에 등을 맡긴 적조차 없는 자들의 종말이었다.
+
+홀로 남아 어둠 속에서 마지막을 맞이한다.`;
+  if (c==='Z2') return `피를 흘리며 쓰러지자, 애쉬의 총이 망설임 없이 이쪽을 겨눈다.
+
+"…일어나지 마라."
+
+그의 눈에 서린 것은 연민도, 동정심도 아닌 최소한의 자비였다.
+
+"거기서 죽어라."
+
+한참을 노려보던 그림자가 발길을 돌렸다.
+
+믿음을 주지 못한 대가는 죽음이 허락되지 않는 최후였다.`;
+  if (c==='Z3') return `무릎이 꺾이며 바닥으로 고꾸라졌다.
+
+애쉬가 반사적으로 멈춰 섰지만, 다가오지도 물러서지도 못한다.
+
+"가이…"
+
+떨리는 목소리가 머릿속에서 울렸다.
+
+침묵 속에서 총이 장전되는 소리를 들으며 시야가 암전되었다.`;
+  if (c==='Z4') return `숨이 거칠어지고 호흡이 가빠온다. 애쉬의 애타는 목소리가 들려왔다.
+
+"가이, 미안하다."
+
+처음 보는 흔들리는 표정이 눈에 들어와 엷게 웃었다.
+
+뺨 위로 뚝뚝 떨어지는 온기가 피인지 눈물인지 분간하지 못한 채 서 있었다.
+
+애쉬는 총구를 들이민 채 한참을 망설인다.
+
+그러곤 방아쇠를 당겼다.`;
+  return `온몸에 열이 펄펄 끓기 시작한다.
+
+애쉬의 떨리는 총구가 관자놀이를 겨누지만, 손가락은 끝내 방아쇠를 당기지 못한다.
+
+바닥으로 총기를 내던진 애쉬가 이성을 잃어가는 나를 부서질 듯 끌어안는다.
+
+탁하게 물든 시야 너머로 목덜미를 파고들며 젖어 드는 체온이 닿는다.
+
+끔찍한 고통 속에서도 따스함이 느껴진다.
+
+그렇게 마지막 어둠이 내려앉는다.`;
+}
+
+/* ---------- 렌더 ---------- */
+let PAGES = null, PAGE_I = 0, ENDCODE = null;
+
+function renderEnding(app){
+  const kind = CUR.ending;
+  if (PAGES === null){
+    if (kind === 'hp'){ ENDCODE = 'X'; PAGES = []; }
+    else if (kind === 'inf'){ ENDCODE = zombieCode(); PAGES = [zombieText()]; }
+    else { ENDCODE = endingCode(); PAGES = ENDING_TEXT[ENDCODE](); }
+    collect(ENDCODE);
+    PAGE_I = 0;
+  }
+  const sc = el('div','scene ending');
+
+  if (kind === 'hp'){
+    sc.classList.add('bleak');
+    sc.appendChild(el('div','stain'));
+    sc.appendChild(el('h2','bad', `${S.day}일 차에 맞이한 죽음`));
+    const n = el('div','narr'); prose(n, '결국 해내지 못했어.');
+    sc.appendChild(n);
+    sc.appendChild(sheet(sc));
+    app.appendChild(sc);
+    window.scrollTo({top:0, behavior:'instant'});
+    return;
+  }
+
+  if (PAGE_I < PAGES.length){
+    const n = el('div','narr'); prose(n, PAGES[PAGE_I]);
+    sc.appendChild(n);
+    const b = el('button','go', PAGE_I === PAGES.length-1 ? '…' : '계속');
+    b.type='button'; b.onclick = ()=>{ PAGE_I++; go(CUR === SCENES.ending ? 'ending' : 'dead_inf'); };
+    sc.appendChild(b);
+    app.appendChild(sc);
+    window.scrollTo({top:0, behavior:'instant'});
+    return;
+  }
+
+  sc.appendChild(el('div','kicker', kind==='inf' ? '배드 엔딩' : '엔딩'));
+  sc.appendChild(el('h2', kind==='inf'?'bad':'', `엔딩[${ENDCODE}] — ${GNAME[ENDCODE]}`));
+  sc.appendChild(sheet(sc));
+  app.appendChild(sc);
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function sheet(){
+  const wrap = el('div','');
+  const dl = el('dl','sheet');
+  const row=(k,v)=>{const r=el('div','row');r.appendChild(el('dt','',k));r.appendChild(el('dd','',v));dl.appendChild(r);};
+  row('생존일', `${S.day}일`);
+  row('체력', String(S.hp));
+  row('감염도', S.infected ? String(S.inf) : '0 (감염 없음)');
+  const m = moodOf(S.aff);
+  row('애쉬', DEBUG ? `${m[1]} (${S.aff})` : m[1]);
+  row('루크의 흔적', clueName() || '없음');
+  wrap.appendChild(dl);
+
+  const got = Object.keys(FLAG_NOTE).filter(has);
+  const box = el('div','sheet');
+  box.appendChild(el('div','row', got.length
+    ? `남은 기록 <span class="cnt">${got.length}</span><br>`
+      + got.map(f=>`<span class="tag">${FLAG_NOTE[f]}</span>`).join('')
+    : '남은 기록 없음'));
+  wrap.appendChild(box);
+  wrap.appendChild(galleryBox());
+
+  const b = el('button','go','처음부터 다시'); b.type='button';
+  b.onclick = ()=>{ S = clone(START); PAGES = null; go('start'); };
+  wrap.appendChild(b);
+  return wrap;
+}
+
+function galleryBox(){
+  const v = loadVault();
+  const box = el('div','sheet');
+  box.appendChild(el('div','row',
+    `엔딩 도감 <span class="cnt">${v.size} / ${GALLERY.length}</span>`));
+  const g = el('div','gal');
+  GALLERY.forEach(([code,name,desc])=>{
+    const seen = v.has(code);
+    const cell = el('div', 'cell' + (seen?'':' hid') + (code===ENDCODE?' now':''));
+    cell.innerHTML = seen
+      ? `<b>${code}</b> ${name}<span>${desc}</span>`
+      : `<b>${code}</b> ???<span>아직 보지 못했다</span>`;
+    g.appendChild(cell);
+  });
+  box.appendChild(g);
+  return box;
+}
+
+/* ---------- 시작 ---------- */
+document.getElementById('use-food').onclick = ()=>packUse('food');
+document.getElementById('use-band').onclick = ()=>packUse('band');
+document.getElementById('use-anti').onclick = ()=>packUse('anti');
+go('start');
+
+</script>
+</body>
+</html>
