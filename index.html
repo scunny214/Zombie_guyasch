@@ -356,9 +356,9 @@ function endDay(){
   const log = [];
   S.hunger = Math.max(0, S.hunger - 15);
   log.push({t:'포만감', v:-15});
-  if (S.hunger === 0){ S.hp = Math.max(0, S.hp - 15); log.push({t:'체력 (굶주림)', v:-15}); }
+  if (S.hunger === 0){ S.hp = Math.max(0, S.hp - 10); log.push({t:'체력 (굶주림)', v:-10}); }
   else if (S.hunger >= 55 && S.hp < 100){
-    const r = Math.min(6, 100 - S.hp);
+    const r = Math.min(10, 100 - S.hp);
     S.hp += r; log.push({t:'체력 (잘 쉬었다)', v:r});
   }
   S.day++;
@@ -392,7 +392,7 @@ function packUse(kind){
   if (kind==='band'){
     if (S.band<=0 || S.usedBandToday) return;
     S.band--; S.usedBandToday = true;
-    S.hp = Math.min(100, S.hp+15); S.injured = false;
+    S.hp = Math.min(100, S.hp+25); S.injured = false;
   }
   if (kind==='anti'){
     if (S.anti<=0 || !S.infected || S.antiOn) return;
@@ -1525,7 +1525,7 @@ d7_day: {
 결국 애쉬가 붕대를 던져주고 앞장섰다. 그날 밤까지 눈을 마주치지 않았다.` },
 
     { label:'데려간다', warm:true,
-      lock:()=> S.aff < 55, lockText:'애쉬가 받아들이지 않을 것 같다',
+      lock:()=> S.aff < 45, lockText:'애쉬가 받아들이지 않을 것 같다',
       fx:{food:-2, aff:10, flag:'빚'},
       text:`"…하루만이다."
 
@@ -1648,7 +1648,7 @@ d8_night: {
 "…생각보다 잘 하는군."` },
 
     { label:'"너 루크랑 별로 안 닮았어."', warm:true,
-      lock:()=> S.aff < 65,
+      lock:()=> S.aff < 40,
       lockText:'지금 이 말을 꺼내면, 애쉬가 믿지 않을 것 같다',
       fx:{aff:18, flag:'구별'},
       text:`애쉬가 굳는다. 천천히 돌아본다. 젖은 머리끝에서 물이 떨어진다.
